@@ -1,0 +1,30 @@
+{
+    "name": "phlib/mutex",
+    "description": "PHP mutex handling in different ways",
+    "keywords": [
+        "phlib",
+        "mutex"
+    ],
+    "homepage": "https://github.com/phlib/mutex",
+    "authors": [
+        {
+            "name": "James Dempster"
+        }
+    ],
+    "require": {
+        "php" : ">=5.4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit" : "4.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phlib\\Mutex\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phlib\\Mutex\\Test\\": "tests"
+        }
+    }
+}
