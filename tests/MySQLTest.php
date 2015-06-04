@@ -7,7 +7,7 @@ use Phlib\Mutex\MySQL;
 class MySQLTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var MySQL
+     * @var MySQL|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $mutex;
 
@@ -37,15 +37,15 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods(['getConnection'])
             ->getMock();
-
-        $this->mutex->expects($this->any())
-            ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
     }
 
     public function testAcquire()
     {
         $lockName = 'dummyLock';
+
+        $this->mutex->expects($this->once())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
             ->method('prepare')
@@ -70,6 +70,10 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $lockName = 'dummyLock';
         $lockTimeout = 30;
 
+        $this->mutex->expects($this->once())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
+
         $this->pdo->expects($this->at(0))
             ->method('prepare')
             ->will($this->returnValue($this->stmtGetLock));
@@ -90,6 +94,10 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
 
     public function testAcquireFailed()
     {
+        $this->mutex->expects($this->once())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
+
         $this->pdo->expects($this->at(0))
             ->method('prepare')
             ->will($this->returnValue($this->stmtGetLock));
@@ -110,6 +118,10 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
      */
     public function testAcquireInvalidResult()
     {
+        $this->mutex->expects($this->once())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
+
         $this->pdo->expects($this->at(0))
             ->method('prepare')
             ->will($this->returnValue($this->stmtGetLock));
@@ -128,18 +140,25 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
      */
     public function testAcquireError()
     {
-        // stm fetchColumn gives no result
+        $this->mutex->expects($this->once())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
             ->method('prepare')
             ->will($this->returnValue($this->stmtGetLock));
 
+        // stm fetchColumn gives no result
         $this->mutex->acquire('dummyLock');
     }
 
     public function testAcquireExisting()
     {
         $lockName = 'dummyLock';
+
+        $this->mutex->expects($this->once())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
             ->method('prepare')
@@ -161,12 +180,13 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(true, $result);
     }
 
-    /**
-     * @covers Mxm\Mutex\MySQL::release
-     */
     public function testRelease()
     {
         $lockName = 'dummyLock';
+
+        $this->mutex->expects($this->once())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
             ->method('prepare')
@@ -196,12 +216,13 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(true, $result);
     }
 
-    /**
-     * @covers Mxm\Mutex\MySQL::release
-     */
     public function testReleaseFailed()
     {
         $lockName = 'dummyLock';
+
+        $this->mutex->expects($this->once())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
             ->method('prepare')
@@ -227,11 +248,12 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(false, $result);
     }
 
-    /**
-     * @covers Mxm\Mutex\MySQL::release
-     */
     public function testReleaseNoLock()
     {
+        $this->mutex->expects($this->never())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
+
         $this->pdo->expects($this->never())
             ->method('prepare');
 
