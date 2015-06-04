@@ -34,8 +34,8 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $this->stmtReleaseLock = $this->getMock('\PDOStatement');
 
         $this->mutex = $this->getMockBuilder('\Phlib\Mutex\MySQL')
-            ->disableOriginalConstructor()
-            ->setMethods(['getConnection'])
+            ->setConstructorArgs([[]])
+            ->setMethods(['createConnection'])
             ->getMock();
     }
 
@@ -44,7 +44,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $lockName = 'dummyLock';
 
         $this->mutex->expects($this->once())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -71,7 +71,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $lockTimeout = 30;
 
         $this->mutex->expects($this->once())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -95,7 +95,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     public function testAcquireFailed()
     {
         $this->mutex->expects($this->once())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -119,7 +119,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     public function testAcquireInvalidResult()
     {
         $this->mutex->expects($this->once())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -141,7 +141,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     public function testAcquireError()
     {
         $this->mutex->expects($this->once())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -157,7 +157,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $lockName = 'dummyLock';
 
         $this->mutex->expects($this->once())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -185,7 +185,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $lockName = 'dummyLock';
 
         $this->mutex->expects($this->once())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -221,7 +221,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $lockName = 'dummyLock';
 
         $this->mutex->expects($this->once())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -251,7 +251,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     public function testReleaseNoLock()
     {
         $this->mutex->expects($this->never())
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->never())
@@ -269,7 +269,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     public function testMultiAcquireTwo()
     {
         $this->mutex->expects($this->exactly(2))
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->exactly(2))
@@ -291,7 +291,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     public function testMultiAcquireTwoReleaseOne()
     {
         $this->mutex->expects($this->exactly(2))
-            ->method('getConnection')
+            ->method('createConnection')
             ->will($this->returnValue($this->pdo));
 
         $this->pdo->expects($this->at(0))
@@ -334,6 +334,47 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
 
         $result = $this->mutex->acquire('lock2');
 
+        $this->assertEquals(true, $result);
+    }
+
+    public function testConnectionReuse()
+    {
+        $lockName = 'dummyLock';
+
+        $this->mutex->expects($this->once())
+            ->method('createConnection')
+            ->will($this->returnValue($this->pdo));
+
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+        $this->pdo->expects($this->at(1))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtReleaseLock));
+        $this->pdo->expects($this->at(2))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+
+        // Valid lock
+        $this->stmtGetLock->expects($this->exactly(2))
+            ->method('fetchColumn')
+            ->will($this->returnValue(1));
+
+        // Valid unlock
+        $this->stmtReleaseLock->expects($this->once())
+            ->method('execute')
+            ->with(array($lockName));
+        $this->stmtReleaseLock->expects($this->once())
+            ->method('fetchColumn')
+            ->will($this->returnValue(1));
+
+        $result = $this->mutex->acquire($lockName);
+        $this->assertEquals(true, $result);
+
+        $result = $this->mutex->release($lockName);
+        $this->assertEquals(true, $result);
+
+        $result = $this->mutex->acquire($lockName);
         $this->assertEquals(true, $result);
     }
 }

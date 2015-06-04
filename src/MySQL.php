@@ -11,13 +11,20 @@ class MySQL implements MutexInterface
      */
     protected $dbConfig;
 
-    protected $stmtGetLock;
-    protected $stmtReleaseLock;
+    /**
+     * @var int
+     */
+    protected $maxSpareConnections;
 
     /**
      * @var \PDO[]
      */
     protected $locks = [];
+
+    /**
+     * @var \PDO[]
+     */
+    protected $connections = [];
 
     /**
      * Constructor
@@ -30,10 +37,12 @@ class MySQL implements MutexInterface
      *     @var string $dbname   Optional.
      *     @var int    $timeout  Optional. Connection timeout in seconds. Default 2.
      * }
+     * @param int $maxSpareConnections Default 2
      */
-    public function __construct(array $dbConfig)
+    public function __construct(array $dbConfig, $maxSpareConnections = 2)
     {
         $this->dbConfig = $dbConfig;
+        $this->maxSpareConnections = $maxSpareConnections;
     }
 
     /**
@@ -61,9 +70,12 @@ class MySQL implements MutexInterface
                 $this->locks[$name] = $pdo;
                 return true;
             } else if ($result == 0) {
+                $this->reuseConnection($pdo);
                 return false;
             }
         }
+
+        $this->reuseConnection($pdo);
 
         throw new \RuntimeException("Failure on mutex '$name'");
     }
@@ -83,6 +95,8 @@ class MySQL implements MutexInterface
             $stmt = $pdo->prepare('SELECT RELEASE_LOCK(?)');
             $stmt->execute(array($name));
 
+            $this->reuseConnection($pdo);
+
             return ($stmt->fetchColumn() == 1);
         }
 
@@ -90,11 +104,27 @@ class MySQL implements MutexInterface
     }
 
     /**
-     * Get new connection
+     * Get connection
      *
      * @return \PDO
      */
     protected function getConnection()
+    {
+        $pdo = array_shift($this->connections);
+
+        if ($pdo instanceof \PDO) {
+            return $pdo;
+        }
+
+        return $this->createConnection();
+    }
+
+    /**
+     * Create new connection
+     *
+     * @return \PDO
+     */
+    protected function createConnection()
     {
         if (!isset($this->dbConfig['host'])) {
             throw new \InvalidArgumentException('Missing host config param');
@@ -136,5 +166,14 @@ class MySQL implements MutexInterface
         );
 
         return $connection;
+    }
+
+    protected function reuseConnection(\PDO $pdo)
+    {
+        if (count($this->connections) < $this->maxSpareConnections) {
+            $this->connections[] = $pdo;
+        }
+
+        return $this;
     }
 }
