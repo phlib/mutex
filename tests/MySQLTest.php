@@ -12,6 +12,11 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     protected $mutex;
 
     /**
+     * @var \PDO|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $pdo;
+
+    /**
      * @var \PDOStatement|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $stmtGetLock;
@@ -23,26 +28,28 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        // Mock lock and release statements
+        // Mock PDO classes
+        $this->pdo = $this->getMock('\Phlib\Mutex\Test\MockablePdo');
         $this->stmtGetLock     = $this->getMock('\PDOStatement');
         $this->stmtReleaseLock = $this->getMock('\PDOStatement');
 
-        // Constructor will prepare the statements
-        /** @var \PDO|\PHPUnit_Framework_MockObject_MockObject $pdo */
-        $pdo = $this->getMock('\Phlib\Mutex\Test\MockablePdo');
-        $pdo->expects($this->at(0))
-            ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
-        $pdo->expects($this->at(1))
-            ->method('prepare')
-            ->will($this->returnValue($this->stmtReleaseLock));
+        $this->mutex = $this->getMockBuilder('\Phlib\Mutex\MySQL')
+            ->disableOriginalConstructor()
+            ->setMethods(['getConnection'])
+            ->getMock();
 
-        $this->mutex = new MySQL($pdo);
+        $this->mutex->expects($this->any())
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
     }
 
     public function testAcquire()
     {
         $lockName = 'dummyLock';
+
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
 
         $this->stmtGetLock->expects($this->once())
             ->method('execute')
@@ -63,6 +70,10 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $lockName = 'dummyLock';
         $lockTimeout = 30;
 
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+
         $this->stmtGetLock->expects($this->once())
             ->method('execute')
             ->with(array($lockName, $lockTimeout));
@@ -79,6 +90,10 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
 
     public function testAcquireFailed()
     {
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+
         // Invalid lock
         $this->stmtGetLock->expects($this->once())
             ->method('fetchColumn')
@@ -95,6 +110,10 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
      */
     public function testAcquireInvalidResult()
     {
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+
         // Invalid lock result
         $this->stmtGetLock->expects($this->once())
             ->method('fetchColumn')
@@ -111,12 +130,20 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     {
         // stm fetchColumn gives no result
 
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+
         $this->mutex->acquire('dummyLock');
     }
 
     public function testAcquireExisting()
     {
         $lockName = 'dummyLock';
+
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
 
         // Valid lock
         $this->stmtGetLock->expects($this->once())
@@ -140,6 +167,13 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     public function testRelease()
     {
         $lockName = 'dummyLock';
+
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+        $this->pdo->expects($this->at(1))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtReleaseLock));
 
         // Valid lock
         $this->stmtGetLock->expects($this->once())
@@ -169,6 +203,13 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     {
         $lockName = 'dummyLock';
 
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+        $this->pdo->expects($this->at(1))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtReleaseLock));
+
         // Valid lock
         $this->stmtGetLock->expects($this->once())
             ->method('fetchColumn')
@@ -191,6 +232,9 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
      */
     public function testReleaseNoLock()
     {
+        $this->pdo->expects($this->never())
+            ->method('prepare');
+
         // The stm should not be executed
         $this->stmtReleaseLock->expects($this->never())
             ->method('execute');

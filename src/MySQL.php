@@ -2,22 +2,38 @@
 
 namespace Phlib\Mutex;
 
+use Phlib\Config;
+
 class MySQL implements MutexInterface
 {
+    /**
+     * @var array
+     */
+    protected $dbConfig;
 
     protected $stmtGetLock;
     protected $stmtReleaseLock;
-    protected $lock = null;
+
+    /**
+     * @var \PDO[]
+     */
+    protected $locks = [];
 
     /**
      * Constructor
      *
-     * @param \PDO $db
+     * @param array $dbConfig {
+     *     @var string $host     Required.
+     *     @var int    $port     Optional. Default 3306.
+     *     @var string $username Optional. Default empty.
+     *     @var string $password Optional. Default empty.
+     *     @var string $dbname   Optional.
+     *     @var int    $timeout  Optional. Connection timeout in seconds. Default 2.
+     * }
      */
-    public function __construct(\PDO $db)
+    public function __construct(array $dbConfig)
     {
-        $this->stmtGetLock     = $db->prepare('SELECT GET_LOCK(?, ?)');
-        $this->stmtReleaseLock = $db->prepare('SELECT RELEASE_LOCK(?)');
+        $this->dbConfig = $dbConfig;
     }
 
     /**
@@ -30,19 +46,19 @@ class MySQL implements MutexInterface
      */
     public function acquire($name, $timeout = 0)
     {
-        if ($this->lock == $name) {
+        if (isset($this->locks[$name])) {
             return true;
         }
 
-        $this->lock = null;
+        $pdo = $this->getConnection();
 
-        $stmt = $this->stmtGetLock;
+        $stmt = $pdo->prepare('SELECT GET_LOCK(?, ?)');
         $stmt->execute(array($name, $timeout));
         $result = $stmt->fetchColumn();
 
         if (is_numeric($result)) {
             if ($result == 1) {
-                $this->lock = $name;
+                $this->locks[$name] = $pdo;
                 return true;
             } else if ($result == 0) {
                 return false;
@@ -60,12 +76,65 @@ class MySQL implements MutexInterface
      */
     public function release($name)
     {
-        if ($this->lock == $name) {
-            $this->lock = null;
-            $this->stmtReleaseLock->execute(array($name));
-            return ($this->stmtReleaseLock->fetchColumn() == 1);
+        if (isset($this->locks[$name]) && $this->locks[$name] instanceof \PDO) {
+            $pdo = $this->locks[$name];
+            $this->locks[$name] = null;
+
+            $stmt = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+            $stmt->execute(array($name));
+
+            return ($stmt->fetchColumn() == 1);
         }
 
         return false;
+    }
+
+    /**
+     * Get new connection
+     *
+     * @return \PDO
+     */
+    protected function getConnection()
+    {
+        if (!isset($this->dbConfig['host'])) {
+            throw new \InvalidArgumentException('Missing host config param');
+        }
+
+        $dsn = "mysql:host={$this->dbConfig['host']}";
+
+        if (isset($this->dbConfig['port'])) {
+            $dsn .= ";port={$this->dbConfig['port']}";
+        }
+
+        if (isset($this->dbConfig['dbname'])) {
+            $dsn .= ";dbname={$this->dbConfig['dbname']}";
+        }
+
+        $timeout = filter_var(
+            Config::get($this->dbConfig, 'timeout'),
+            FILTER_VALIDATE_INT,
+            array(
+                'options' => array(
+                    'default'   => 2,
+                    'min_range' => 0,
+                    'max_range' => 120
+                )
+            )
+        );
+
+        $options = array(
+            \PDO::ATTR_TIMEOUT            => $timeout,
+            \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+        );
+
+        $connection = new \PDO(
+            $dsn,
+            Config::get($this->dbConfig, 'username', ''),
+            Config::get($this->dbConfig, 'password', ''),
+            $options
+        );
+
+        return $connection;
     }
 }
