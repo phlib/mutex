@@ -265,4 +265,75 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(false, $result);
     }
+
+    public function testMultiAcquireTwo()
+    {
+        $this->mutex->expects($this->exactly(2))
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
+
+        $this->pdo->expects($this->exactly(2))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+
+        // Valid lock
+        $this->stmtGetLock->expects($this->exactly(2))
+            ->method('fetchColumn')
+            ->will($this->returnValue(1));
+
+        $result1 = $this->mutex->acquire('lock1');
+        $this->assertEquals(true, $result1);
+
+        $result2 = $this->mutex->acquire('lock2');
+        $this->assertEquals(true, $result2);
+    }
+
+    public function testMultiAcquireTwoReleaseOne()
+    {
+        $this->mutex->expects($this->exactly(2))
+            ->method('getConnection')
+            ->will($this->returnValue($this->pdo));
+
+        $this->pdo->expects($this->at(0))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+        $this->pdo->expects($this->at(1))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtGetLock));
+        $this->pdo->expects($this->at(2))
+            ->method('prepare')
+            ->will($this->returnValue($this->stmtReleaseLock));
+
+        // Valid lock
+        $this->stmtGetLock->expects($this->exactly(2))
+            ->method('fetchColumn')
+            ->will($this->returnValue(1));
+
+        $result1 = $this->mutex->acquire('lock1');
+        $this->assertEquals(true, $result1);
+
+        $result2 = $this->mutex->acquire('lock2');
+        $this->assertEquals(true, $result2);
+
+        // Valid unlock
+        $this->stmtReleaseLock->expects($this->once())
+            ->method('execute')
+            ->with(array('lock1'));
+
+        $this->stmtReleaseLock->expects($this->once())
+            ->method('fetchColumn')
+            ->will($this->returnValue(1));
+
+        $result = $this->mutex->release('lock1');
+
+        $this->assertEquals(true, $result);
+
+        // Verify lock2
+        $this->stmtGetLock->expects($this->never())
+            ->method('execute');
+
+        $result = $this->mutex->acquire('lock2');
+
+        $this->assertEquals(true, $result);
+    }
 }
