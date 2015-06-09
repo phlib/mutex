@@ -16,3 +16,14 @@ $ composer require phlib/mutex
 
 ## Usage
 
+```php
+$mutex = new \Phlib\Mutex\MySQL([
+    'host'     => '127.0.0.1',
+    'username' => 'my-user',
+    'password' => 'my-pass',
+    'dbname'   => 'mydb'
+]);
+$mutex->acquire('my-lock');
+// Do some data manipulation while locked
+$mutex->release('my-lock');
+```
