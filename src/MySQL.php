@@ -4,6 +4,11 @@ namespace Phlib\Mutex;
 
 use Phlib\Config;
 
+/**
+ * MySQL Mutex
+ *
+ * @package Phlib\Mutex
+ */
 class MySQL implements MutexInterface
 {
     /**

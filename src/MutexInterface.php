@@ -2,6 +2,11 @@
 
 namespace Phlib\Mutex;
 
+/**
+ * Mutex interface
+ *
+ * @package Phlib\Mutex
+ */
 interface MutexInterface
 {
 
