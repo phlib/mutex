@@ -124,9 +124,6 @@ class HelperTest extends \PHPUnit_Framework_TestCase
             }
         };
         $createClosure = function() use ($expected) {
-            $this->mutex->expects($this->at(1))
-                ->method('unlock');
-            ;
             return $expected;
         };
 
@@ -136,7 +133,6 @@ class HelperTest extends \PHPUnit_Framework_TestCase
         ;
         $this->mutex->expects($this->at(1))
             ->method('unlock')
-            ->will($this->throwException(new \PHPUnit_Framework_AssertionFailedError('Unlock should not be called')));
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
