@@ -17,19 +17,29 @@ class MySQL implements MutexInterface
     protected $dbConfig;
 
     /**
-     * @var int
+     * @var string
      */
-    protected $maxSpareConnections;
+    protected $name;
 
     /**
-     * @var \PDO[]
+     * @var \PDO
      */
-    protected $locks = [];
+    protected $connection;
 
     /**
-     * @var \PDO[]
+     * @var \PDOStatement
      */
-    protected $connections = [];
+    protected $stmtGetLock;
+
+    /**
+     * @var \PDOStatement
+     */
+    protected $stmtReleaseLock;
+
+    /**
+     * @var bool
+     */
+    protected $isLocked = false;
 
     /**
      * Constructor
@@ -42,94 +52,75 @@ class MySQL implements MutexInterface
      *     @var string $dbname   Optional.
      *     @var int    $timeout  Optional. Connection timeout in seconds. Default 2.
      * }
-     * @param int $maxSpareConnections Default 2
+     * @param int $name
      */
-    public function __construct(array $dbConfig, $maxSpareConnections = 2)
+    public function __construct(array $dbConfig, $name)
     {
         $this->dbConfig = $dbConfig;
-        $this->maxSpareConnections = $maxSpareConnections;
+        $this->name = $name;
     }
 
     /**
-     * Acquire
+     * Lock
      *
-     * @param string $name
-     * @param int $timeout
+     * @param int $wait Number of seconds to wait for lock
      * @return boolean
      * @throws \RuntimeException
      */
-    public function acquire($name, $timeout = 0)
+    public function lock($wait = 0)
     {
-        if (isset($this->locks[$name])) {
+        if ($this->isLocked) {
             return true;
         }
 
-        $pdo = $this->getConnection();
+        if (!$this->stmtGetLock instanceof \PDOStatement) {
+            $pdo = $this->getConnection();
+            $this->stmtGetLock = $pdo->prepare('SELECT GET_LOCK(?, ?)');
+        }
 
-        $stmt = $pdo->prepare('SELECT GET_LOCK(?, ?)');
-        $stmt->execute(array($name, $timeout));
-        $result = $stmt->fetchColumn();
+        $this->stmtGetLock->execute(array($this->name, $wait));
+        $result = $this->stmtGetLock->fetchColumn();
 
         if (is_numeric($result)) {
             if ($result == 1) {
-                $this->locks[$name] = $pdo;
+                $this->isLocked = true;
                 return true;
             } else if ($result == 0) {
-                $this->reuseConnection($pdo);
                 return false;
             }
         }
 
-        $this->reuseConnection($pdo);
-
-        throw new \RuntimeException("Failure on mutex '$name'");
+        throw new \RuntimeException("Failure on mutex '{$this->name}'");
     }
 
     /**
-     * Release
+     * Unlock
      *
-     * @param string $name
      * @return boolean
      */
-    public function release($name)
+    public function unlock()
     {
-        if (isset($this->locks[$name]) && $this->locks[$name] instanceof \PDO) {
-            $pdo = $this->locks[$name];
-            $this->locks[$name] = null;
+        if ($this->isLocked) {
+            if (!$this->stmtReleaseLock instanceof \PDOStatement) {
+                $pdo = $this->getConnection();
+                $this->stmtReleaseLock = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+            }
 
-            $stmt = $pdo->prepare('SELECT RELEASE_LOCK(?)');
-            $stmt->execute(array($name));
+            $this->isLocked = false;
+            $this->stmtReleaseLock->execute(array($this->name));
 
-            $this->reuseConnection($pdo);
-
-            return ($stmt->fetchColumn() == 1);
+            return ($this->stmtReleaseLock->fetchColumn() == 1);
         }
 
         return false;
     }
 
     /**
-     * Get connection
+     * Get connection, create if required
      *
      * @return \PDO
      */
     protected function getConnection()
-    {
-        $pdo = array_shift($this->connections);
-
-        if ($pdo instanceof \PDO) {
-            return $pdo;
-        }
-
-        return $this->createConnection();
-    }
-
-    /**
-     * Create new connection
-     *
-     * @return \PDO
-     */
-    protected function createConnection()
     {
         if (!isset($this->dbConfig['host'])) {
             throw new \InvalidArgumentException('Missing host config param');
@@ -171,14 +162,5 @@ class MySQL implements MutexInterface
         );
 
         return $connection;
-    }
-
-    protected function reuseConnection(\PDO $pdo)
-    {
-        if (count($this->connections) < $this->maxSpareConnections) {
-            $this->connections[] = $pdo;
-        }
-
-        return $this;
     }
 }

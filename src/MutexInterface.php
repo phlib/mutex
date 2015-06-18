@@ -11,19 +11,17 @@ interface MutexInterface
 {
 
     /**
-     * Acquire
+     * Lock
      *
-     * @param string $name
-     * @param int $timeout Number of seconds
+     * @param int $wait Number of seconds to wait for lock
      * @return bool
      */
-    public function acquire($name, $timeout = 0);
+    public function lock($wait = 0);
 
     /**
-     * Release
+     * Unlock
      *
-     * @param string $name
      * @return bool
      */
-    public function release($name);
+    public function unlock();
 }
