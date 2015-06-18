@@ -36,7 +36,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $this->stmtReleaseLock = $this->getMock('\PDOStatement');
 
         $this->mutex = $this->getMockBuilder('\Phlib\Mutex\MySQL')
-            ->setConstructorArgs([[], self::LOCK_NAME])
+            ->setConstructorArgs([self::LOCK_NAME, []])
             ->setMethods(['getConnection'])
             ->getMock();
     }
