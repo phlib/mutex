@@ -16,6 +16,8 @@ $ composer require phlib/mutex
 
 ## Usage
 
+### MySQL
+
 ```php
 $mutex = new \Phlib\Mutex\MySQL([
     'host'     => '127.0.0.1',
@@ -26,4 +28,26 @@ $mutex = new \Phlib\Mutex\MySQL([
 $mutex->acquire('my-lock');
 // Do some data manipulation while locked
 $mutex->release('my-lock');
+```
+
+### Helpers
+
+**Get-Or-Create** provides a simple way to attempt retrieval of a resource,
+or create it using a mutex if it doesn't already exist
+
+```php
+$getClosure = function() {
+    // attempt to get a value, eg. from DB, cache, etc.
+    if (!$value) {
+        throw new \Phlib\Mutex\NotFoundException();
+    }
+    return $value;
+};
+
+$createClosure = function() {
+    // attempt to create a value and write eg. to DB, cache, etc.
+    return $value;
+};
+
+$value = \Phlib\Mutex\Helper::getOrCreate($mutex, $getClosure, $createClosure);
 ```
