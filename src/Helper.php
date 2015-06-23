@@ -10,11 +10,11 @@ namespace Phlib\Mutex;
 class Helper
 {
     /**
-     * Tries to get a resource (e.g. a row from the database) using the getClosure, and if it does not
-     * exist, calls the createClosure to create the resource and return it
+     * Tries to get a value (eg. from a database) using the getClosure, and if it does not
+     * exist, uses the mutex while calling the createClosure to create the value and return it
      *
-     * The getClosure should return the resource, or throw a NotFoundException
-     * The createClosure should create the resource and return the created resource
+     * The getClosure should return the value, or throw a NotFoundException
+     * The createClosure should create the value and return the created value
      *
      * @param MutexInterface $mutex
      * @param \Closure $getClosure

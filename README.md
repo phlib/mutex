@@ -32,7 +32,7 @@ if ($mutex->lock()) {
 
 ### Helpers
 
-**Get-Or-Create** provides a simple way to attempt retrieval of a resource,
+**Get-Or-Create** provides a simple way to attempt retrieval of a value,
 or create it using a mutex if it doesn't already exist
 
 ```php

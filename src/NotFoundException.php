@@ -3,7 +3,7 @@
 namespace Phlib\Mutex;
 
 /**
- * Exception used to represent a resource not found
+ * Exception used to represent a value not found
  *
  * @package Phlib\Mutex
  * @see Phlib\Mutex\Mutex::getorCreate()
