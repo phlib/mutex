@@ -50,7 +50,6 @@ class MySQL implements MutexInterface
      *     @var int    $port     Optional. Default 3306.
      *     @var string $username Optional. Default empty.
      *     @var string $password Optional. Default empty.
-     *     @var string $dbname   Optional.
      *     @var int    $timeout  Optional. Connection timeout in seconds. Default 2.
      * }
      */
@@ -130,10 +129,6 @@ class MySQL implements MutexInterface
 
         if (isset($this->dbConfig['port'])) {
             $dsn .= ";port={$this->dbConfig['port']}";
-        }
-
-        if (isset($this->dbConfig['dbname'])) {
-            $dsn .= ";dbname={$this->dbConfig['dbname']}";
         }
 
         $timeout = filter_var(
