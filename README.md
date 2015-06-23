@@ -19,15 +19,15 @@ $ composer require phlib/mutex
 ### MySQL
 
 ```php
-$mutex = new \Phlib\Mutex\MySQL([
+$mutex = new \Phlib\Mutex\MySQL('my-lock', [
     'host'     => '127.0.0.1',
     'username' => 'my-user',
-    'password' => 'my-pass',
-    'dbname'   => 'mydb'
+    'password' => 'my-pass'
 ]);
-$mutex->acquire('my-lock');
-// Do some data manipulation while locked
-$mutex->release('my-lock');
+if ($mutex->lock()) {
+    // Do some data manipulation while locked
+    $mutex->unlock();
+}
 ```
 
 ### Helpers

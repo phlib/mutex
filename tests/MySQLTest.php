@@ -4,6 +4,11 @@ namespace Phlib\Mutex\Test;
 
 use Phlib\Mutex\MySQL;
 
+/**
+ * Test MySQL
+ *
+ * @package Phlib\Mutex
+ */
 class MySQLTest extends \PHPUnit_Framework_TestCase
 {
     const LOCK_NAME = 'dummyLock';
@@ -36,7 +41,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $this->stmtReleaseLock = $this->getMock('\PDOStatement');
 
         $this->mutex = $this->getMockBuilder('\Phlib\Mutex\MySQL')
-            ->setConstructorArgs([[], self::LOCK_NAME])
+            ->setConstructorArgs([self::LOCK_NAME, []])
             ->setMethods(['getConnection'])
             ->getMock();
     }

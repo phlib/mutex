@@ -44,17 +44,16 @@ class MySQL implements MutexInterface
     /**
      * Constructor
      *
+     * @param int $name
      * @param array $dbConfig {
      *     @var string $host     Required.
      *     @var int    $port     Optional. Default 3306.
      *     @var string $username Optional. Default empty.
      *     @var string $password Optional. Default empty.
-     *     @var string $dbname   Optional.
      *     @var int    $timeout  Optional. Connection timeout in seconds. Default 2.
      * }
-     * @param int $name
      */
-    public function __construct(array $dbConfig, $name)
+    public function __construct($name, array $dbConfig)
     {
         $this->dbConfig = $dbConfig;
         $this->name = $name;
@@ -130,10 +129,6 @@ class MySQL implements MutexInterface
 
         if (isset($this->dbConfig['port'])) {
             $dsn .= ";port={$this->dbConfig['port']}";
-        }
-
-        if (isset($this->dbConfig['dbname'])) {
-            $dsn .= ";dbname={$this->dbConfig['dbname']}";
         }
 
         $timeout = filter_var(
