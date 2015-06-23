@@ -62,9 +62,9 @@ class HelperTest extends \PHPUnit_Framework_TestCase
         $getClosure = function() use ($expected, &$count) {
             switch (++$count) {
                 case 1 :
-                    return $expected;
-                case 2 :
                     throw new NotFoundException('Value not found');
+                case 2 :
+                    return $expected;
                 default :
                     $this->fail('Get Closure was not expected to be called more than twice');
                     return null;
@@ -74,6 +74,16 @@ class HelperTest extends \PHPUnit_Framework_TestCase
         $createClosure = function() {
             $this->fail('Create Closure was not expected to be called');
         };
+
+        $this->mutex->expects($this->at(0))
+            ->method('lock')
+            ->with(0) // Default value
+            ->will($this->returnValue(true))
+        ;
+        $this->mutex->expects($this->at(1))
+            ->method('unlock')
+            ->will($this->returnValue(true))
+        ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
