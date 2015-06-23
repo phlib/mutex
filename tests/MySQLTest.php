@@ -4,6 +4,11 @@ namespace Phlib\Mutex\Test;
 
 use Phlib\Mutex\MySQL;
 
+/**
+ * Test MySQL
+ *
+ * @package Phlib\Mutex
+ */
 class MySQLTest extends \PHPUnit_Framework_TestCase
 {
     const LOCK_NAME = 'dummyLock';
