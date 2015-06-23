@@ -20,7 +20,7 @@ class Helper
      * @param \Closure $getClosure
      * @param \Closure $createClosure
      * @param int $wait Number of seconds to wait for lock
-     * @return mixed
+     * @return mixed Value from get or create closures
      */
     public static function getOrCreate(MutexInterface $mutex, \Closure $getClosure, \Closure $createClosure, $wait = 0)
     {
@@ -28,7 +28,9 @@ class Helper
             $value = $getClosure();
         } catch (NotFoundException $e) {
 
-            $mutex->lock($wait);
+            if ($mutex->lock($wait) === false) {
+                throw new \RuntimeException('Unable to acquire lock on mutex');
+            }
 
             try {
                 $value = $getClosure();
@@ -36,7 +38,9 @@ class Helper
                 $value = $createClosure();
             }
 
-            $mutex->unlock();
+            if ($mutex->unlock() === false) {
+                throw new \RuntimeException('Unable to release lock on mutex');
+            }
         }
 
         return $value;

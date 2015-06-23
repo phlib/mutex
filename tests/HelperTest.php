@@ -130,9 +130,11 @@ class HelperTest extends \PHPUnit_Framework_TestCase
         $this->mutex->expects($this->at(0))
             ->method('lock')
             ->with(0) // Default value
+            ->will($this->returnValue(true))
         ;
         $this->mutex->expects($this->at(1))
             ->method('unlock')
+            ->will($this->returnValue(true))
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
@@ -165,14 +167,86 @@ class HelperTest extends \PHPUnit_Framework_TestCase
         $this->mutex->expects($this->at(0))
             ->method('lock')
             ->with($wait)
+            ->will($this->returnValue(true))
         ;
         $this->mutex->expects($this->at(1))
             ->method('unlock')
+            ->will($this->returnValue(true))
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure, $wait);
 
         $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     * @expectedExceptionMessage Unable to acquire lock on mutex
+     */
+    public function testGetOrCreateGetFailThenLocked()
+    {
+        $count = 0;
+        $getClosure = function() use (&$count) {
+            switch (++$count) {
+                case 1 :
+                    // no break
+                case 2 :
+                    throw new NotFoundException('Value not found');
+                default :
+                    $this->fail('Get Closure was not expected to be called more than twice');
+                    return null;
+                    break;
+            }
+        };
+        $createClosure = function() {
+            $this->fail('Create Closure was not expected to be called');
+        };
+
+        $this->mutex->expects($this->at(0))
+            ->method('lock')
+            ->with(0) // Default value
+            ->will($this->returnValue(false))
+        ;
+
+        Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     * @expectedExceptionMessage Unable to release lock on mutex
+     */
+    public function testGetOrCreateGetFailThenCreateUnlockFail()
+    {
+        $expected = 'valid';
+
+        $count = 0;
+        $getClosure = function() use (&$count) {
+            switch (++$count) {
+                case 1 :
+                    // no break
+                case 2 :
+                    throw new NotFoundException('Value not found');
+                default :
+                    $this->fail('Get Closure was not expected to be called more than twice');
+                    return null;
+                    break;
+            }
+        };
+        $createClosure = function() use ($expected) {
+            return $expected;
+        };
+
+        $this->mutex->expects($this->at(0))
+            ->method('lock')
+            ->with(0) // Default value
+            ->will($this->returnValue(true))
+        ;
+        $this->mutex->expects($this->at(1))
+            ->method('unlock')
+            ->will($this->returnValue(false))
+        ;
+
+        Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
     /**
