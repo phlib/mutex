@@ -44,7 +44,7 @@ class MySQL implements MutexInterface
     /**
      * Constructor
      *
-     * @param int $name
+     * @param string $name
      * @param array $dbConfig {
      *     @var string $host     Required.
      *     @var int    $port     Optional. Default 3306.
@@ -121,41 +121,43 @@ class MySQL implements MutexInterface
      */
     protected function getConnection()
     {
-        if (!isset($this->dbConfig['host'])) {
-            throw new \InvalidArgumentException('Missing host config param');
-        }
+        if (!$this->connection instanceof \PDO) {
+            if (!isset($this->dbConfig['host'])) {
+                throw new \InvalidArgumentException('Missing host config param');
+            }
 
-        $dsn = "mysql:host={$this->dbConfig['host']}";
+            $dsn = "mysql:host={$this->dbConfig['host']}";
 
-        if (isset($this->dbConfig['port'])) {
-            $dsn .= ";port={$this->dbConfig['port']}";
-        }
+            if (isset($this->dbConfig['port'])) {
+                $dsn .= ";port={$this->dbConfig['port']}";
+            }
 
-        $timeout = filter_var(
-            Config::get($this->dbConfig, 'timeout'),
-            FILTER_VALIDATE_INT,
-            array(
-                'options' => array(
-                    'default'   => 2,
-                    'min_range' => 0,
-                    'max_range' => 120
+            $timeout = filter_var(
+                Config::get($this->dbConfig, 'timeout'),
+                FILTER_VALIDATE_INT,
+                array(
+                    'options' => array(
+                        'default' => 2,
+                        'min_range' => 0,
+                        'max_range' => 120
+                    )
                 )
-            )
-        );
+            );
 
-        $options = array(
-            \PDO::ATTR_TIMEOUT            => $timeout,
-            \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
-        );
+            $options = array(
+                \PDO::ATTR_TIMEOUT => $timeout,
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+            );
 
-        $connection = new \PDO(
-            $dsn,
-            Config::get($this->dbConfig, 'username', ''),
-            Config::get($this->dbConfig, 'password', ''),
-            $options
-        );
+            $this->connection = new \PDO(
+                $dsn,
+                Config::get($this->dbConfig, 'username', ''),
+                Config::get($this->dbConfig, 'password', ''),
+                $options
+            );
+        }
 
-        return $connection;
+        return $this->connection;
     }
 }
