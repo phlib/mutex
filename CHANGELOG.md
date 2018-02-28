@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - Apply GNU LGPLv3 software licence
+### Removed
+- Drop support for PHP 5
 
 ## [1.0.1] - 2015-06-25
 ### Changed
