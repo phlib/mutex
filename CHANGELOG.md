@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - Apply GNU LGPLv3 software licence
+### Changed
+- Upgrade *phlib/config* to v2 to allow usages of this package to also update
+  their dependency versions
 ### Removed
 - Drop support for PHP 5
 
