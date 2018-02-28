@@ -2,8 +2,6 @@
 
 namespace Phlib\Mutex;
 
-use Phlib\Config;
-
 /**
  * MySQL Mutex
  *
@@ -133,7 +131,7 @@ class MySQL implements MutexInterface
             }
 
             $timeout = filter_var(
-                Config::get($this->dbConfig, 'timeout'),
+                \Phlib\Config\get($this->dbConfig, 'timeout'),
                 FILTER_VALIDATE_INT,
                 array(
                     'options' => array(
@@ -152,8 +150,8 @@ class MySQL implements MutexInterface
 
             $this->connection = new \PDO(
                 $dsn,
-                Config::get($this->dbConfig, 'username', ''),
-                Config::get($this->dbConfig, 'password', ''),
+                \Phlib\Config\get($this->dbConfig, 'username', ''),
+                \Phlib\Config\get($this->dbConfig, 'password', ''),
                 $options
             );
         }
