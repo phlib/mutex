@@ -3,44 +3,46 @@
 namespace Phlib\Mutex\Test;
 
 use Phlib\Mutex\MySQL;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test MySQL
  *
  * @package Phlib\Mutex
  */
-class MySQLTest extends \PHPUnit_Framework_TestCase
+class MySQLTest extends TestCase
 {
     const LOCK_NAME = 'dummyLock';
 
     /**
-     * @var MySQL|\PHPUnit_Framework_MockObject_MockObject
+     * @var MySQL|MockObject
      */
     protected $mutex;
 
     /**
-     * @var \PDO|\PHPUnit_Framework_MockObject_MockObject
+     * @var \PDO|MockObject
      */
     protected $pdo;
 
     /**
-     * @var \PDOStatement|\PHPUnit_Framework_MockObject_MockObject
+     * @var \PDOStatement|MockObject
      */
     protected $stmtGetLock;
 
     /**
-     * @var \PDOStatement|\PHPUnit_Framework_MockObject_MockObject
+     * @var \PDOStatement|MockObject
      */
     protected $stmtReleaseLock;
 
     protected function setUp()
     {
         // Mock PDO classes
-        $this->pdo = $this->getMock('\Phlib\Mutex\Test\MockablePdo');
-        $this->stmtGetLock     = $this->getMock('\PDOStatement');
-        $this->stmtReleaseLock = $this->getMock('\PDOStatement');
+        $this->pdo = $this->createMock(\PDO::class);
+        $this->stmtGetLock = $this->createMock(\PDOStatement::class);
+        $this->stmtReleaseLock = $this->createMock(\PDOStatement::class);
 
-        $this->mutex = $this->getMockBuilder('\Phlib\Mutex\MySQL')
+        $this->mutex = $this->getMockBuilder(MySQL::class)
             ->setConstructorArgs([self::LOCK_NAME, []])
             ->setMethods(['getConnection'])
             ->getMock();
@@ -48,219 +50,217 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
 
     public function testLock()
     {
-        $this->mutex->expects($this->once())
+        $this->mutex->expects(static::once())
             ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+            ->willReturn($this->pdo);
 
-        $this->pdo->expects($this->at(0))
+        $this->pdo->expects(static::at(0))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
+            ->willReturn($this->stmtGetLock);
 
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('execute')
-            ->with(array(self::LOCK_NAME, 0));
+            ->with([self::LOCK_NAME, 0]);
 
         // Valid lock
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(1));
+            ->willReturn(1);
 
         $result = $this->mutex->lock();
 
-        $this->assertEquals(true, $result);
+        static::assertTrue($result);
     }
 
     public function testLockTimeout()
     {
         $lockTimeout = 30;
 
-        $this->mutex->expects($this->once())
+        $this->mutex->expects(static::once())
             ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+            ->willReturn($this->pdo);
 
-        $this->pdo->expects($this->at(0))
+        $this->pdo->expects(static::at(0))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
+            ->willReturn($this->stmtGetLock);
 
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('execute')
-            ->with(array(self::LOCK_NAME, $lockTimeout));
+            ->with([self::LOCK_NAME, $lockTimeout]);
 
         // Valid lock
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(1));
+            ->willReturn(1);
 
         $result = $this->mutex->lock($lockTimeout);
 
-        $this->assertEquals(true, $result);
+        static::assertTrue($result);
     }
 
     public function testLockFailed()
     {
-        $this->mutex->expects($this->once())
+        $this->mutex->expects(static::once())
             ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+            ->willReturn($this->pdo);
 
-        $this->pdo->expects($this->at(0))
+        $this->pdo->expects(static::at(0))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
+            ->willReturn($this->stmtGetLock);
 
         // Invalid lock
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(0));
+            ->willReturn(0);
 
         $result = $this->mutex->lock();
 
-        $this->assertEquals(false, $result);
+        static::assertFalse($result);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Failure on mutex
-     */
     public function testLockInvalidResult()
     {
-        $this->mutex->expects($this->once())
-            ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failure on mutex');
 
-        $this->pdo->expects($this->at(0))
+        $this->mutex->expects(static::once())
+            ->method('getConnection')
+            ->willReturn($this->pdo);
+
+        $this->pdo->expects(static::at(0))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
+            ->willReturn($this->stmtGetLock);
 
         // Invalid lock result
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(2));
+            ->willReturn(2);
 
         $this->mutex->lock();
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Failure on mutex
-     */
     public function testLockError()
     {
-        $this->mutex->expects($this->once())
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failure on mutex');
+
+        $this->mutex->expects(static::once())
             ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+            ->willReturn($this->pdo);
 
-        $this->pdo->expects($this->at(0))
+        $this->pdo->expects(static::at(0))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
+            ->willReturn($this->stmtGetLock);
 
-        // stm fetchColumn gives no result
+        // stmt fetchColumn gives no result
         $this->mutex->lock();
     }
 
     public function testLockExisting()
     {
-        $this->mutex->expects($this->once())
+        $this->mutex->expects(static::once())
             ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+            ->willReturn($this->pdo);
 
-        $this->pdo->expects($this->at(0))
+        $this->pdo->expects(static::at(0))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
+            ->willReturn($this->stmtGetLock);
 
         // Valid lock
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(1));
+            ->willReturn(1);
 
         $this->mutex->lock();
 
         // Now it's locked, another acquire should not execute the stm
-        $this->stmtGetLock->expects($this->never())
+        $this->stmtGetLock->expects(static::never())
             ->method('execute');
 
         $result = $this->mutex->lock();
 
-        $this->assertEquals(true, $result);
+        static::assertTrue($result);
     }
 
     public function testUnlock()
     {
-        $this->mutex->expects($this->exactly(2))
+        $this->mutex->expects(static::exactly(2))
             ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+            ->willReturn($this->pdo);
 
-        $this->pdo->expects($this->at(0))
+        $this->pdo->expects(static::at(0))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
-        $this->pdo->expects($this->at(1))
+            ->willReturn($this->stmtGetLock);
+        $this->pdo->expects(static::at(1))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtReleaseLock));
+            ->willReturn($this->stmtReleaseLock);
 
         // Valid lock
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(1));
+            ->willReturn(1);
 
         $this->mutex->lock();
 
         // Valid unlock
-        $this->stmtReleaseLock->expects($this->once())
+        $this->stmtReleaseLock->expects(static::once())
             ->method('execute')
-            ->with(array(self::LOCK_NAME));
+            ->with([self::LOCK_NAME]);
 
-        $this->stmtReleaseLock->expects($this->once())
+        $this->stmtReleaseLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(1));
+            ->willReturn(1);
 
         $result = $this->mutex->unlock();
 
-        $this->assertEquals(true, $result);
+        static::assertTrue($result);
     }
 
     public function testUnlockFailed()
     {
-        $this->mutex->expects($this->exactly(2))
+        $this->mutex->expects(static::exactly(2))
             ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+            ->willReturn($this->pdo);
 
-        $this->pdo->expects($this->at(0))
+        $this->pdo->expects(static::at(0))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtGetLock));
-        $this->pdo->expects($this->at(1))
+            ->willReturn($this->stmtGetLock);
+        $this->pdo->expects(static::at(1))
             ->method('prepare')
-            ->will($this->returnValue($this->stmtReleaseLock));
+            ->willReturn($this->stmtReleaseLock);
 
         // Valid lock
-        $this->stmtGetLock->expects($this->once())
+        $this->stmtGetLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(1));
+            ->willReturn(1);
 
         $this->mutex->lock();
 
         // Invalid unlock
-        $this->stmtReleaseLock->expects($this->once())
+        $this->stmtReleaseLock->expects(static::once())
             ->method('fetchColumn')
-            ->will($this->returnValue(0));
+            ->willReturn(0);
 
         $result = $this->mutex->unlock();
 
-        $this->assertEquals(false, $result);
+        static::assertFalse($result);
     }
 
     public function testUnlockNoLock()
     {
-        $this->mutex->expects($this->never())
+        $this->mutex->expects(static::never())
             ->method('getConnection')
-            ->will($this->returnValue($this->pdo));
+            ->willReturn($this->pdo);
 
-        $this->pdo->expects($this->never())
+        $this->pdo->expects(static::never())
             ->method('prepare');
 
-        // The stm should not be executed
-        $this->stmtReleaseLock->expects($this->never())
+        // The stmt should not be executed
+        $this->stmtReleaseLock->expects(static::never())
             ->method('execute');
 
         $result = $this->mutex->unlock();
 
-        $this->assertEquals(false, $result);
+        static::assertFalse($result);
     }
 }
