@@ -3,6 +3,7 @@
 namespace Phlib\Mutex\Test;
 
 use Phlib\Mutex\MySQL;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -15,22 +16,22 @@ class MySQLTest extends TestCase
     const LOCK_NAME = 'dummyLock';
 
     /**
-     * @var MySQL|\PHPUnit_Framework_MockObject_MockObject
+     * @var MySQL|MockObject
      */
     protected $mutex;
 
     /**
-     * @var \PDO|\PHPUnit_Framework_MockObject_MockObject
+     * @var \PDO|MockObject
      */
     protected $pdo;
 
     /**
-     * @var \PDOStatement|\PHPUnit_Framework_MockObject_MockObject
+     * @var \PDOStatement|MockObject
      */
     protected $stmtGetLock;
 
     /**
-     * @var \PDOStatement|\PHPUnit_Framework_MockObject_MockObject
+     * @var \PDOStatement|MockObject
      */
     protected $stmtReleaseLock;
 
@@ -117,12 +118,11 @@ class MySQLTest extends TestCase
         static::assertFalse($result);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Failure on mutex
-     */
     public function testLockInvalidResult()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failure on mutex');
+
         $this->mutex->expects(static::once())
             ->method('getConnection')
             ->willReturn($this->pdo);
@@ -139,12 +139,11 @@ class MySQLTest extends TestCase
         $this->mutex->lock();
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Failure on mutex
-     */
     public function testLockError()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failure on mutex');
+
         $this->mutex->expects(static::once())
             ->method('getConnection')
             ->willReturn($this->pdo);

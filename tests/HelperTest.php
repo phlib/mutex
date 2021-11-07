@@ -5,6 +5,7 @@ namespace Phlib\Mutex\Test;
 use Phlib\Mutex\Helper;
 use Phlib\Mutex\MutexInterface;
 use Phlib\Mutex\NotFoundException;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class HelperTest extends TestCase
@@ -12,15 +13,14 @@ class HelperTest extends TestCase
     const LOCK_NAME = 'dummyLock';
 
     /**
-     * @var MutexInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var MutexInterface|MockObject
      */
     protected $mutex;
 
     protected function setUp()
     {
         // Mock Mutex
-        $this->mutex = $this->getMockBuilder(MutexInterface::class)
-            ->getMock();
+        $this->mutex = $this->createMock(MutexInterface::class);
     }
 
     public function testGetOrCreateGetValid()
@@ -39,12 +39,11 @@ class HelperTest extends TestCase
         static::assertEquals($expected, $result);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Get exception
-     */
     public function testGetOrCreateGetException()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Get exception');
+
         $getClosure = function() {
             throw new \Exception('Get exception');
         };
@@ -90,12 +89,11 @@ class HelperTest extends TestCase
         static::assertEquals($expected, $result);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Get exception
-     */
     public function testGetOrCreateGetFailThenException()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Get exception');
+
         $count = 0;
         $getClosure = function() use (&$count) {
             switch (++$count) {
@@ -189,12 +187,11 @@ class HelperTest extends TestCase
         static::assertEquals($expected, $result);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Unable to acquire lock on mutex
-     */
     public function testGetOrCreateGetFailThenLocked()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unable to acquire lock on mutex');
+
         $count = 0;
         $getClosure = function() use (&$count) {
             switch (++$count) {
@@ -221,12 +218,11 @@ class HelperTest extends TestCase
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Unable to release lock on mutex
-     */
     public function testGetOrCreateGetFailThenCreateUnlockFail()
     {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Unable to release lock on mutex');
+
         $expected = 'valid';
 
         $count = 0;
@@ -259,12 +255,11 @@ class HelperTest extends TestCase
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessage Create exception
-     */
     public function testGetOrCreateGetFailThenCreateException()
     {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Create exception');
+
         $count = 0;
         $getClosure = function() use (&$count) {
             switch (++$count) {
@@ -285,12 +280,11 @@ class HelperTest extends TestCase
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    /**
-     * @expectedException \Phlib\Mutex\NotFoundException
-     * @expectedExceptionMessage Create not found exception
-     */
     public function testGetOrCreateGetFailThenCreateNotFoundException()
     {
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage('Create not found exception');
+
         $count = 0;
         $getClosure = function() use (&$count) {
             switch (++$count) {
