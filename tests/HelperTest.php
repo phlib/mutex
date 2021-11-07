@@ -5,8 +5,9 @@ namespace Phlib\Mutex\Test;
 use Phlib\Mutex\Helper;
 use Phlib\Mutex\MutexInterface;
 use Phlib\Mutex\NotFoundException;
+use PHPUnit\Framework\TestCase;
 
-class HelperTest extends \PHPUnit_Framework_TestCase
+class HelperTest extends TestCase
 {
     const LOCK_NAME = 'dummyLock';
 
@@ -18,7 +19,7 @@ class HelperTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         // Mock Mutex
-        $this->mutex = $this->getMockBuilder('\Phlib\Mutex\MutexInterface')
+        $this->mutex = $this->getMockBuilder(MutexInterface::class)
             ->getMock();
     }
 
@@ -30,12 +31,12 @@ class HelperTest extends \PHPUnit_Framework_TestCase
             return $expected;
         };
         $createClosure = function() {
-            $this->fail('Create Closure was not expected to be called');
+            static::fail('Create Closure was not expected to be called');
         };
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        $this->assertEquals($expected, $result);
+        static::assertEquals($expected, $result);
     }
 
     /**
@@ -48,7 +49,7 @@ class HelperTest extends \PHPUnit_Framework_TestCase
             throw new \Exception('Get exception');
         };
         $createClosure = function() {
-            $this->fail('Create Closure was not expected to be called');
+            static::fail('Create Closure was not expected to be called');
         };
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
@@ -66,28 +67,27 @@ class HelperTest extends \PHPUnit_Framework_TestCase
                 case 2 :
                     return $expected;
                 default :
-                    $this->fail('Get Closure was not expected to be called more than twice');
+                    static::fail('Get Closure was not expected to be called more than twice');
                     return null;
-                    break;
             }
         };
         $createClosure = function() {
-            $this->fail('Create Closure was not expected to be called');
+            static::fail('Create Closure was not expected to be called');
         };
 
-        $this->mutex->expects($this->at(0))
+        $this->mutex->expects(static::at(0))
             ->method('lock')
             ->with(0) // Default value
-            ->will($this->returnValue(true))
+            ->willReturn(true)
         ;
-        $this->mutex->expects($this->at(1))
+        $this->mutex->expects(static::at(1))
             ->method('unlock')
-            ->will($this->returnValue(true))
+            ->willReturn(true)
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        $this->assertEquals($expected, $result);
+        static::assertEquals($expected, $result);
     }
 
     /**
@@ -104,13 +104,13 @@ class HelperTest extends \PHPUnit_Framework_TestCase
                 case 2 :
                     throw new \Exception('Get exception');
                 default :
-                    $this->fail('Get Closure was not expected to be called more than twice');
+                    static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
         $createClosure = function() {
-            $this->fail('Create Closure was not expected to be called');
+            static::fail('Create Closure was not expected to be called');
         };
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
@@ -128,7 +128,7 @@ class HelperTest extends \PHPUnit_Framework_TestCase
                 case 2 :
                     throw new NotFoundException('Value not found');
                 default :
-                    $this->fail('Get Closure was not expected to be called more than twice');
+                    static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
@@ -137,19 +137,19 @@ class HelperTest extends \PHPUnit_Framework_TestCase
             return $expected;
         };
 
-        $this->mutex->expects($this->at(0))
+        $this->mutex->expects(static::at(0))
             ->method('lock')
             ->with(0) // Default value
-            ->will($this->returnValue(true))
+            ->willReturn(true)
         ;
-        $this->mutex->expects($this->at(1))
+        $this->mutex->expects(static::at(1))
             ->method('unlock')
-            ->will($this->returnValue(true))
+            ->willReturn(true)
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        $this->assertEquals($expected, $result);
+        static::assertEquals($expected, $result);
     }
 
     public function testGetOrCreateGetFailThenCreateWait()
@@ -164,7 +164,7 @@ class HelperTest extends \PHPUnit_Framework_TestCase
                 case 2 :
                     throw new NotFoundException('Value not found');
                 default :
-                    $this->fail('Get Closure was not expected to be called more than twice');
+                    static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
@@ -174,19 +174,19 @@ class HelperTest extends \PHPUnit_Framework_TestCase
         };
 
         $wait = 10;
-        $this->mutex->expects($this->at(0))
+        $this->mutex->expects(static::at(0))
             ->method('lock')
             ->with($wait)
-            ->will($this->returnValue(true))
+            ->willReturn(true)
         ;
-        $this->mutex->expects($this->at(1))
+        $this->mutex->expects(static::at(1))
             ->method('unlock')
-            ->will($this->returnValue(true))
+            ->willReturn(true)
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure, $wait);
 
-        $this->assertEquals($expected, $result);
+        static::assertEquals($expected, $result);
     }
 
     /**
@@ -203,19 +203,19 @@ class HelperTest extends \PHPUnit_Framework_TestCase
                 case 2 :
                     throw new NotFoundException('Value not found');
                 default :
-                    $this->fail('Get Closure was not expected to be called more than twice');
+                    static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
         $createClosure = function() {
-            $this->fail('Create Closure was not expected to be called');
+            static::fail('Create Closure was not expected to be called');
         };
 
-        $this->mutex->expects($this->at(0))
+        $this->mutex->expects(static::at(0))
             ->method('lock')
             ->with(0) // Default value
-            ->will($this->returnValue(false))
+            ->willReturn(false)
         ;
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
@@ -237,7 +237,7 @@ class HelperTest extends \PHPUnit_Framework_TestCase
                 case 2 :
                     throw new NotFoundException('Value not found');
                 default :
-                    $this->fail('Get Closure was not expected to be called more than twice');
+                    static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
@@ -246,14 +246,14 @@ class HelperTest extends \PHPUnit_Framework_TestCase
             return $expected;
         };
 
-        $this->mutex->expects($this->at(0))
+        $this->mutex->expects(static::at(0))
             ->method('lock')
             ->with(0) // Default value
-            ->will($this->returnValue(true))
+            ->willReturn(true)
         ;
-        $this->mutex->expects($this->at(1))
+        $this->mutex->expects(static::at(1))
             ->method('unlock')
-            ->will($this->returnValue(false))
+            ->willReturn(false)
         ;
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
@@ -273,7 +273,7 @@ class HelperTest extends \PHPUnit_Framework_TestCase
                 case 2 :
                     throw new NotFoundException('Value not found');
                 default :
-                    $this->fail('Get Closure was not expected to be called more than twice');
+                    static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
@@ -299,7 +299,7 @@ class HelperTest extends \PHPUnit_Framework_TestCase
                 case 2 :
                     throw new NotFoundException('Value not found');
                 default :
-                    $this->fail('Get Closure was not expected to be called more than twice');
+                    static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
