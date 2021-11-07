@@ -1,9 +1,9 @@
 # phlib/mutex
 
-[![Build Status](https://img.shields.io/travis/phlib/mutex/master.svg?style=flat-square)](https://travis-ci.org/phlib/mutex)
-[![Codecov](https://img.shields.io/codecov/c/github/phlib/mutex.svg)](https://codecov.io/gh/phlib/mutex)
-[![Latest Stable Version](https://img.shields.io/packagist/v/phlib/mutex.svg?style=flat-square)](https://packagist.org/packages/phlib/mutex)
-[![Total Downloads](https://img.shields.io/packagist/dt/phlib/mutex.svg?style=flat-square)](https://packagist.org/packages/phlib/mutex)
+[![Code Checks](https://img.shields.io/github/workflow/status/phlib/mutex/CodeChecks?logo=github)](https://github.com/phlib/mutex/actions/workflows/code-checks.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/phlib/mutex.svg?logo=codecov)](https://codecov.io/gh/phlib/mutex)
+[![Latest Stable Version](https://img.shields.io/packagist/v/phlib/mutex.svg?logo=packagist)](https://packagist.org/packages/phlib/mutex)
+[![Total Downloads](https://img.shields.io/packagist/dt/phlib/mutex.svg?logo=packagist)](https://packagist.org/packages/phlib/mutex)
 ![Licence](https://img.shields.io/github/license/phlib/mutex.svg)
 
 PHP mutex handling in different ways
