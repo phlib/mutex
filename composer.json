@@ -20,7 +20,13 @@
         "php" : "^7",
         "phlib/config" : "^2"
     },
+    "suggest": {
+        "ext-pdo": "Required to use MySQL mutex",
+        "ext-pdo_mysql": "Required to use MySQL mutex"
+    },
     "require-dev": {
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
         "phpunit/phpunit" : "^6"
     },
     "autoload": {
