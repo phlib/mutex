@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phlib\Mutex;
 
 /**
@@ -72,10 +74,10 @@ class MySQL implements MutexInterface
         $result = $this->stmtGetLock->fetchColumn();
 
         if (is_numeric($result)) {
-            if ($result == 1) {
+            if ((int)$result === 1) {
                 $this->isLocked = true;
                 return true;
-            } elseif ($result == 0) {
+            } elseif ((int)$result === 0) {
                 return false;
             }
         }
@@ -94,7 +96,7 @@ class MySQL implements MutexInterface
             $this->isLocked = false;
             $this->stmtReleaseLock->execute([$this->name]);
 
-            return ($this->stmtReleaseLock->fetchColumn() == 1);
+            return ((int)$this->stmtReleaseLock->fetchColumn() === 1);
         }
 
         return false;

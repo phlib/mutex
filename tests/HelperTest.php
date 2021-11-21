@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phlib\Mutex\Test;
 
 use Phlib\Mutex\Helper;
@@ -34,7 +36,7 @@ class HelperTest extends TestCase
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        static::assertEquals($expected, $result);
+        static::assertSame($expected, $result);
     }
 
     public function testGetOrCreateGetException(): void
@@ -84,7 +86,7 @@ class HelperTest extends TestCase
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        static::assertEquals($expected, $result);
+        static::assertSame($expected, $result);
     }
 
     public function testGetOrCreateGetFailThenException(): void
@@ -148,7 +150,7 @@ class HelperTest extends TestCase
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        static::assertEquals($expected, $result);
+        static::assertSame($expected, $result);
     }
 
     public function testGetOrCreateGetFailThenCreateWait(): void
@@ -184,7 +186,7 @@ class HelperTest extends TestCase
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure, $wait);
 
-        static::assertEquals($expected, $result);
+        static::assertSame($expected, $result);
     }
 
     public function testGetOrCreateGetFailThenLocked(): void
