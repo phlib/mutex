@@ -27,7 +27,8 @@
     "require-dev": {
         "ext-pdo": "*",
         "ext-pdo_mysql": "*",
-        "phpunit/phpunit" : "^7"
+        "phpunit/phpunit" : "^7",
+        "symplify/easy-coding-standard": "^9"
     },
     "autoload": {
         "psr-4": {

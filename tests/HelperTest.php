@@ -25,10 +25,10 @@ class HelperTest extends TestCase
     {
         $expected = 'valid';
 
-        $getClosure = function() use ($expected) {
+        $getClosure = function () use ($expected) {
             return $expected;
         };
-        $createClosure = function() {
+        $createClosure = function () {
             static::fail('Create Closure was not expected to be called');
         };
 
@@ -42,10 +42,10 @@ class HelperTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Get exception');
 
-        $getClosure = function() {
+        $getClosure = function () {
             throw new \Exception('Get exception');
         };
-        $createClosure = function() {
+        $createClosure = function () {
             static::fail('Create Closure was not expected to be called');
         };
 
@@ -57,18 +57,18 @@ class HelperTest extends TestCase
         $expected = 'valid';
 
         $count = 0;
-        $getClosure = function() use ($expected, &$count) {
+        $getClosure = function () use ($expected, &$count) {
             switch (++$count) {
-                case 1 :
+                case 1:
                     throw new NotFoundException('Value not found');
-                case 2 :
+                case 2:
                     return $expected;
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
             }
         };
-        $createClosure = function() {
+        $createClosure = function () {
             static::fail('Create Closure was not expected to be called');
         };
 
@@ -93,19 +93,19 @@ class HelperTest extends TestCase
         $this->expectExceptionMessage('Get exception');
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
+                case 1:
                     throw new NotFoundException('Value not found');
-                case 2 :
+                case 2:
                     throw new \Exception('Get exception');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() {
+        $createClosure = function () {
             static::fail('Create Closure was not expected to be called');
         };
 
@@ -117,19 +117,18 @@ class HelperTest extends TestCase
         $expected = 'valid';
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() use ($expected) {
+        $createClosure = function () use ($expected) {
             return $expected;
         };
 
@@ -153,19 +152,18 @@ class HelperTest extends TestCase
         $expected = 'valid';
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() use ($expected) {
+        $createClosure = function () use ($expected) {
             return $expected;
         };
 
@@ -191,19 +189,18 @@ class HelperTest extends TestCase
         $this->expectExceptionMessage('Unable to acquire lock on mutex');
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() {
+        $createClosure = function () {
             static::fail('Create Closure was not expected to be called');
         };
 
@@ -224,19 +221,18 @@ class HelperTest extends TestCase
         $expected = 'valid';
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() use ($expected) {
+        $createClosure = function () use ($expected) {
             return $expected;
         };
 
@@ -259,19 +255,18 @@ class HelperTest extends TestCase
         $this->expectExceptionMessage('Create exception');
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() {
+        $createClosure = function () {
             throw new \Exception('Create exception');
         };
 
@@ -284,19 +279,18 @@ class HelperTest extends TestCase
         $this->expectExceptionMessage('Create not found exception');
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() {
+        $createClosure = function () {
             throw new NotFoundException('Create not found exception');
         };
 

@@ -82,7 +82,7 @@ class MySQL implements MutexInterface
             if ($result == 1) {
                 $this->isLocked = true;
                 return true;
-            } else if ($result == 0) {
+            } elseif ($result == 0) {
                 return false;
             }
         }
@@ -137,15 +137,15 @@ class MySQL implements MutexInterface
                     'options' => [
                         'default' => 2,
                         'min_range' => 0,
-                        'max_range' => 120
-                    ]
+                        'max_range' => 120,
+                    ],
                 ]
             );
 
             $options = [
                 \PDO::ATTR_TIMEOUT => $timeout,
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
             ];
 
             $this->connection = new \PDO(

@@ -9,7 +9,6 @@ namespace Phlib\Mutex;
  */
 interface MutexInterface
 {
-
     /**
      * Lock
      *

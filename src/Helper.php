@@ -16,9 +16,6 @@ class Helper
      * The getClosure should return the value, or throw a NotFoundException
      * The createClosure should create the value and return the created value
      *
-     * @param MutexInterface $mutex
-     * @param \Closure $getClosure
-     * @param \Closure $createClosure
      * @param int $wait Number of seconds to wait for lock
      * @return mixed Value from get or create closures
      */
@@ -27,7 +24,6 @@ class Helper
         try {
             $value = $getClosure();
         } catch (NotFoundException $e) {
-
             if ($mutex->lock($wait) === false) {
                 throw new \RuntimeException('Unable to acquire lock on mutex');
             }
