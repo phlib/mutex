@@ -74,12 +74,12 @@ class HelperTest extends TestCase
             static::fail('Create Closure was not expected to be called');
         };
 
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with(0) // Default value
             ->willReturn(true)
         ;
-        $this->mutex->expects(static::at(1))
+        $this->mutex->expects(static::once())
             ->method('unlock')
             ->willReturn(true)
         ;
@@ -138,12 +138,12 @@ class HelperTest extends TestCase
             return $expected;
         };
 
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with(0) // Default value
             ->willReturn(true)
         ;
-        $this->mutex->expects(static::at(1))
+        $this->mutex->expects(static::once())
             ->method('unlock')
             ->willReturn(true)
         ;
@@ -174,12 +174,12 @@ class HelperTest extends TestCase
         };
 
         $wait = 10;
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with($wait)
             ->willReturn(true)
         ;
-        $this->mutex->expects(static::at(1))
+        $this->mutex->expects(static::once())
             ->method('unlock')
             ->willReturn(true)
         ;
@@ -210,7 +210,7 @@ class HelperTest extends TestCase
             static::fail('Create Closure was not expected to be called');
         };
 
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with(0) // Default value
             ->willReturn(false)
@@ -242,12 +242,12 @@ class HelperTest extends TestCase
             return $expected;
         };
 
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with(0) // Default value
             ->willReturn(true)
         ;
-        $this->mutex->expects(static::at(1))
+        $this->mutex->expects(static::once())
             ->method('unlock')
             ->willReturn(false)
         ;

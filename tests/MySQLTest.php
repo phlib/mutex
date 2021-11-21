@@ -56,7 +56,7 @@ class MySQLTest extends TestCase
             ->method('getConnection')
             ->willReturn($this->pdo);
 
-        $this->pdo->expects(static::at(0))
+        $this->pdo->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -82,7 +82,7 @@ class MySQLTest extends TestCase
             ->method('getConnection')
             ->willReturn($this->pdo);
 
-        $this->pdo->expects(static::at(0))
+        $this->pdo->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -106,7 +106,7 @@ class MySQLTest extends TestCase
             ->method('getConnection')
             ->willReturn($this->pdo);
 
-        $this->pdo->expects(static::at(0))
+        $this->pdo->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -129,7 +129,7 @@ class MySQLTest extends TestCase
             ->method('getConnection')
             ->willReturn($this->pdo);
 
-        $this->pdo->expects(static::at(0))
+        $this->pdo->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -150,7 +150,7 @@ class MySQLTest extends TestCase
             ->method('getConnection')
             ->willReturn($this->pdo);
 
-        $this->pdo->expects(static::at(0))
+        $this->pdo->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -164,7 +164,7 @@ class MySQLTest extends TestCase
             ->method('getConnection')
             ->willReturn($this->pdo);
 
-        $this->pdo->expects(static::at(0))
+        $this->pdo->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -190,12 +190,12 @@ class MySQLTest extends TestCase
             ->method('getConnection')
             ->willReturn($this->pdo);
 
-        $this->pdo->expects(static::at(0))
+        $this->pdo->expects(static::exactly(2))
             ->method('prepare')
-            ->willReturn($this->stmtGetLock);
-        $this->pdo->expects(static::at(1))
-            ->method('prepare')
-            ->willReturn($this->stmtReleaseLock);
+            ->willReturnOnConsecutiveCalls(
+                $this->stmtGetLock,
+                $this->stmtReleaseLock
+            );
 
         // Valid lock
         $this->stmtGetLock->expects(static::once())
@@ -224,12 +224,12 @@ class MySQLTest extends TestCase
             ->method('getConnection')
             ->willReturn($this->pdo);
 
-        $this->pdo->expects(static::at(0))
+        $this->pdo->expects(static::exactly(2))
             ->method('prepare')
-            ->willReturn($this->stmtGetLock);
-        $this->pdo->expects(static::at(1))
-            ->method('prepare')
-            ->willReturn($this->stmtReleaseLock);
+            ->willReturnOnConsecutiveCalls(
+                $this->stmtGetLock,
+                $this->stmtReleaseLock
+            );
 
         // Valid lock
         $this->stmtGetLock->expects(static::once())
