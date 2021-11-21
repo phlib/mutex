@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class MySQLTest extends TestCase
 {
-    const LOCK_NAME = 'dummyLock';
+    private const LOCK_NAME = 'dummyLock';
 
     /**
      * @var MySQL|MockObject

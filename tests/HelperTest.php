@@ -10,8 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 class HelperTest extends TestCase
 {
-    const LOCK_NAME = 'dummyLock';
-
     /**
      * @var MutexInterface|MockObject
      */
