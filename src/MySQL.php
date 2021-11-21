@@ -40,9 +40,6 @@ class MySQL implements MutexInterface
     protected $isLocked = false;
 
     /**
-     * Constructor
-     *
-     * @param string $name
      * @param array $dbConfig {
      *     @var string $host     Required.
      *     @var int    $port     Optional. Default 3306.
@@ -51,20 +48,16 @@ class MySQL implements MutexInterface
      *     @var int    $timeout  Optional. Connection timeout in seconds. Default 2.
      * }
      */
-    public function __construct($name, array $dbConfig)
+    public function __construct(string $name, array $dbConfig)
     {
         $this->dbConfig = $dbConfig;
         $this->name = $name;
     }
 
     /**
-     * Lock
-     *
      * @param int $wait Number of seconds to wait for lock
-     * @return boolean
-     * @throws \RuntimeException
      */
-    public function lock($wait = 0)
+    public function lock(int $wait = 0): bool
     {
         if ($this->isLocked) {
             return true;
@@ -90,12 +83,7 @@ class MySQL implements MutexInterface
         throw new \RuntimeException("Failure on mutex '{$this->name}'");
     }
 
-    /**
-     * Unlock
-     *
-     * @return boolean
-     */
-    public function unlock()
+    public function unlock(): bool
     {
         if ($this->isLocked) {
             if (!$this->stmtReleaseLock instanceof \PDOStatement) {
@@ -114,10 +102,8 @@ class MySQL implements MutexInterface
 
     /**
      * Get connection, create if required
-     *
-     * @return \PDO
      */
-    protected function getConnection()
+    protected function getConnection(): \PDO
     {
         if (!$this->connection instanceof \PDO) {
             if (!isset($this->dbConfig['host'])) {

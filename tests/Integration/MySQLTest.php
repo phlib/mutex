@@ -17,7 +17,7 @@ class MySQLTest extends TestCase
      */
     private $dbConfig;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         if ((bool)getenv('INTEGRATION_ENABLED') !== true) {
             static::markTestSkipped();
@@ -34,7 +34,7 @@ class MySQLTest extends TestCase
         ];
     }
 
-    public function testLock()
+    public function testLock(): void
     {
         $name = sha1(uniqid());
 
@@ -47,7 +47,7 @@ class MySQLTest extends TestCase
         static::assertTrue($unlockResult);
     }
 
-    public function testLockRepeat()
+    public function testLockRepeat(): void
     {
         $name = sha1(uniqid());
 
@@ -64,7 +64,7 @@ class MySQLTest extends TestCase
         static::assertTrue($unlockAResult);
     }
 
-    public function testLockBlocked()
+    public function testLockBlocked(): void
     {
         $name = sha1(uniqid());
 
@@ -82,7 +82,7 @@ class MySQLTest extends TestCase
         static::assertTrue($unlockAResult);
     }
 
-    public function testLockTimeout()
+    public function testLockTimeout(): void
     {
         $name = sha1(uniqid());
 
@@ -105,7 +105,7 @@ class MySQLTest extends TestCase
         static::assertTrue($unlockAResult);
     }
 
-    public function testLockError()
+    public function testLockError(): void
     {
         $this->expectException(\PDOException::class);
         $this->expectExceptionMessage('Incorrect user-level lock name');
@@ -119,7 +119,7 @@ class MySQLTest extends TestCase
         static::assertTrue($lockResult);
     }
 
-    public function testUnlockNoLock()
+    public function testUnlockNoLock(): void
     {
         $name = sha1(uniqid());
 

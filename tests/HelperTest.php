@@ -15,20 +15,20 @@ class HelperTest extends TestCase
      */
     protected $mutex;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         // Mock Mutex
         $this->mutex = $this->createMock(MutexInterface::class);
     }
 
-    public function testGetOrCreateGetValid()
+    public function testGetOrCreateGetValid(): void
     {
         $expected = 'valid';
 
-        $getClosure = function () use ($expected) {
+        $getClosure = function () use ($expected): string {
             return $expected;
         };
-        $createClosure = function () {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
 
@@ -37,22 +37,22 @@ class HelperTest extends TestCase
         static::assertEquals($expected, $result);
     }
 
-    public function testGetOrCreateGetException()
+    public function testGetOrCreateGetException(): void
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Get exception');
 
-        $getClosure = function () {
+        $getClosure = function (): void {
             throw new \Exception('Get exception');
         };
-        $createClosure = function () {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenValid()
+    public function testGetOrCreateGetFailThenValid(): void
     {
         $expected = 'valid';
 
@@ -68,7 +68,7 @@ class HelperTest extends TestCase
                     return null;
             }
         };
-        $createClosure = function () {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
 
@@ -87,7 +87,7 @@ class HelperTest extends TestCase
         static::assertEquals($expected, $result);
     }
 
-    public function testGetOrCreateGetFailThenException()
+    public function testGetOrCreateGetFailThenException(): void
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Get exception');
@@ -105,14 +105,18 @@ class HelperTest extends TestCase
                     break;
             }
         };
-        $createClosure = function () {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
+
+        $this->mutex->expects(static::once())
+            ->method('lock')
+            ->willReturn(true);
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenCreate()
+    public function testGetOrCreateGetFailThenCreate(): void
     {
         $expected = 'valid';
 
@@ -128,7 +132,7 @@ class HelperTest extends TestCase
                     break;
             }
         };
-        $createClosure = function () use ($expected) {
+        $createClosure = function () use ($expected): string {
             return $expected;
         };
 
@@ -147,7 +151,7 @@ class HelperTest extends TestCase
         static::assertEquals($expected, $result);
     }
 
-    public function testGetOrCreateGetFailThenCreateWait()
+    public function testGetOrCreateGetFailThenCreateWait(): void
     {
         $expected = 'valid';
 
@@ -163,7 +167,7 @@ class HelperTest extends TestCase
                     break;
             }
         };
-        $createClosure = function () use ($expected) {
+        $createClosure = function () use ($expected): string {
             return $expected;
         };
 
@@ -183,7 +187,7 @@ class HelperTest extends TestCase
         static::assertEquals($expected, $result);
     }
 
-    public function testGetOrCreateGetFailThenLocked()
+    public function testGetOrCreateGetFailThenLocked(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Unable to acquire lock on mutex');
@@ -200,7 +204,7 @@ class HelperTest extends TestCase
                     break;
             }
         };
-        $createClosure = function () {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
 
@@ -213,7 +217,7 @@ class HelperTest extends TestCase
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenCreateUnlockFail()
+    public function testGetOrCreateGetFailThenCreateUnlockFail(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Unable to release lock on mutex');
@@ -232,7 +236,7 @@ class HelperTest extends TestCase
                     break;
             }
         };
-        $createClosure = function () use ($expected) {
+        $createClosure = function () use ($expected): string {
             return $expected;
         };
 
@@ -249,7 +253,7 @@ class HelperTest extends TestCase
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenCreateException()
+    public function testGetOrCreateGetFailThenCreateException(): void
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Create exception');
@@ -266,14 +270,18 @@ class HelperTest extends TestCase
                     break;
             }
         };
-        $createClosure = function () {
+        $createClosure = function (): void {
             throw new \Exception('Create exception');
         };
+
+        $this->mutex->expects(static::once())
+            ->method('lock')
+            ->willReturn(true);
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenCreateNotFoundException()
+    public function testGetOrCreateGetFailThenCreateNotFoundException(): void
     {
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Create not found exception');
@@ -290,9 +298,13 @@ class HelperTest extends TestCase
                     break;
             }
         };
-        $createClosure = function () {
+        $createClosure = function (): void {
             throw new NotFoundException('Create not found exception');
         };
+
+        $this->mutex->expects(static::once())
+            ->method('lock')
+            ->willReturn(true);
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }

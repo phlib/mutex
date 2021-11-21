@@ -10,17 +10,9 @@ namespace Phlib\Mutex;
 interface MutexInterface
 {
     /**
-     * Lock
-     *
      * @param int $wait Number of seconds to wait for lock
-     * @return bool
      */
-    public function lock($wait = 0);
+    public function lock(int $wait = 0): bool;
 
-    /**
-     * Unlock
-     *
-     * @return bool
-     */
-    public function unlock();
+    public function unlock(): bool;
 }
