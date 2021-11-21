@@ -96,7 +96,7 @@ class MySQLTest extends TestCase
         $lockBResult = $mutexB->lock($lockTimeout);
         $endTime = microtime(true);
         static::assertFalse($lockBResult);
-        static::assertEquals($lockTimeout, $endTime - $startTime, '', 0.01);
+        static::assertEqualsWithDelta($lockTimeout, $endTime - $startTime, 0.01);
 
         $unlockAResult = $mutexA->unlock();
         static::assertTrue($unlockAResult);
