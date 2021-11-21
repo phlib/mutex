@@ -20,22 +20,22 @@ class MySQLTest extends TestCase
     /**
      * @var MySQL|MockObject
      */
-    protected $mutex;
+    private $mutex;
 
     /**
      * @var \PDO|MockObject
      */
-    protected $pdo;
+    private $pdo;
 
     /**
      * @var \PDOStatement|MockObject
      */
-    protected $stmtGetLock;
+    private $stmtGetLock;
 
     /**
      * @var \PDOStatement|MockObject
      */
-    protected $stmtReleaseLock;
+    private $stmtReleaseLock;
 
     protected function setUp(): void
     {

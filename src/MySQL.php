@@ -14,32 +14,32 @@ class MySQL implements MutexInterface
     /**
      * @var array
      */
-    protected $dbConfig;
+    private $dbConfig;
 
     /**
      * @var string
      */
-    protected $name;
+    private $name;
 
     /**
      * @var \PDO
      */
-    protected $connection;
+    private $connection;
 
     /**
      * @var \PDOStatement
      */
-    protected $stmtGetLock;
+    private $stmtGetLock;
 
     /**
      * @var \PDOStatement
      */
-    protected $stmtReleaseLock;
+    private $stmtReleaseLock;
 
     /**
      * @var bool
      */
-    protected $isLocked = false;
+    private $isLocked = false;
 
     /**
      * @param array $dbConfig {
@@ -104,6 +104,9 @@ class MySQL implements MutexInterface
 
     /**
      * Get connection, create if required
+     *
+     * Visibility `protected` so PDO dependency can be mocked in unit tests.
+     * @todo Refactor for proper dependency injection.
      */
     protected function getConnection(): \PDO
     {
