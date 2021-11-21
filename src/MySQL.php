@@ -75,7 +75,7 @@ class MySQL implements MutexInterface
             $this->stmtGetLock = $pdo->prepare('SELECT GET_LOCK(?, ?)');
         }
 
-        $this->stmtGetLock->execute(array($this->name, $wait));
+        $this->stmtGetLock->execute([$this->name, $wait]);
         $result = $this->stmtGetLock->fetchColumn();
 
         if (is_numeric($result)) {
@@ -104,7 +104,7 @@ class MySQL implements MutexInterface
             }
 
             $this->isLocked = false;
-            $this->stmtReleaseLock->execute(array($this->name));
+            $this->stmtReleaseLock->execute([$this->name]);
 
             return ($this->stmtReleaseLock->fetchColumn() == 1);
         }
@@ -133,20 +133,20 @@ class MySQL implements MutexInterface
             $timeout = filter_var(
                 \Phlib\Config\get($this->dbConfig, 'timeout'),
                 FILTER_VALIDATE_INT,
-                array(
-                    'options' => array(
+                [
+                    'options' => [
                         'default' => 2,
                         'min_range' => 0,
                         'max_range' => 120
-                    )
-                )
+                    ]
+                ]
             );
 
-            $options = array(
+            $options = [
                 \PDO::ATTR_TIMEOUT => $timeout,
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
-            );
+            ];
 
             $this->connection = new \PDO(
                 $dsn,
