@@ -15,7 +15,7 @@ class HelperTest extends TestCase
     /**
      * @var MutexInterface|MockObject
      */
-    private $mutex;
+    private MockObject $mutex;
 
     protected function setUp(): void
     {

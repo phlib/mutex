@@ -12,10 +12,7 @@ use PHPUnit\Framework\TestCase;
  */
 class MySQLTest extends TestCase
 {
-    /**
-     * @var array
-     */
-    private $dbConfig;
+    private array $dbConfig;
 
     protected function setUp(): void
     {

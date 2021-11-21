@@ -11,35 +11,17 @@ namespace Phlib\Mutex;
  */
 class MySQL implements MutexInterface
 {
-    /**
-     * @var array
-     */
-    private $dbConfig;
+    private array $dbConfig;
 
-    /**
-     * @var string
-     */
-    private $name;
+    private string $name;
 
-    /**
-     * @var \PDO
-     */
-    private $connection;
+    private \PDO $connection;
 
-    /**
-     * @var \PDOStatement
-     */
-    private $stmtGetLock;
+    private \PDOStatement $stmtGetLock;
 
-    /**
-     * @var \PDOStatement
-     */
-    private $stmtReleaseLock;
+    private \PDOStatement $stmtReleaseLock;
 
-    /**
-     * @var bool
-     */
-    private $isLocked = false;
+    private bool $isLocked = false;
 
     /**
      * @param array $dbConfig {
@@ -65,7 +47,7 @@ class MySQL implements MutexInterface
             return true;
         }
 
-        if (!$this->stmtGetLock instanceof \PDOStatement) {
+        if (!isset($this->stmtGetLock)) {
             $pdo = $this->getConnection();
             $this->stmtGetLock = $pdo->prepare('SELECT GET_LOCK(?, ?)');
         }
@@ -88,7 +70,7 @@ class MySQL implements MutexInterface
     public function unlock(): bool
     {
         if ($this->isLocked) {
-            if (!$this->stmtReleaseLock instanceof \PDOStatement) {
+            if (!isset($this->stmtReleaseLock)) {
                 $pdo = $this->getConnection();
                 $this->stmtReleaseLock = $pdo->prepare('SELECT RELEASE_LOCK(?)');
             }
@@ -110,7 +92,7 @@ class MySQL implements MutexInterface
      */
     protected function getConnection(): \PDO
     {
-        if (!$this->connection instanceof \PDO) {
+        if (!isset($this->connection)) {
             if (!isset($this->dbConfig['host'])) {
                 throw new \InvalidArgumentException('Missing host config param');
             }
