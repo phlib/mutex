@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phlib\Mutex\Test;
 
 use Phlib\Mutex\Helper;
@@ -10,206 +12,205 @@ use PHPUnit\Framework\TestCase;
 
 class HelperTest extends TestCase
 {
-    const LOCK_NAME = 'dummyLock';
-
     /**
      * @var MutexInterface|MockObject
      */
-    protected $mutex;
+    private MockObject $mutex;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         // Mock Mutex
         $this->mutex = $this->createMock(MutexInterface::class);
     }
 
-    public function testGetOrCreateGetValid()
+    public function testGetOrCreateGetValid(): void
     {
         $expected = 'valid';
 
-        $getClosure = function() use ($expected) {
+        $getClosure = function () use ($expected): string {
             return $expected;
         };
-        $createClosure = function() {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        static::assertEquals($expected, $result);
+        static::assertSame($expected, $result);
     }
 
-    public function testGetOrCreateGetException()
+    public function testGetOrCreateGetException(): void
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Get exception');
 
-        $getClosure = function() {
+        $getClosure = function (): void {
             throw new \Exception('Get exception');
         };
-        $createClosure = function() {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenValid()
+    public function testGetOrCreateGetFailThenValid(): void
     {
         $expected = 'valid';
 
         $count = 0;
-        $getClosure = function() use ($expected, &$count) {
+        $getClosure = function () use ($expected, &$count) {
             switch (++$count) {
-                case 1 :
+                case 1:
                     throw new NotFoundException('Value not found');
-                case 2 :
+                case 2:
                     return $expected;
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
             }
         };
-        $createClosure = function() {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
 
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with(0) // Default value
             ->willReturn(true)
         ;
-        $this->mutex->expects(static::at(1))
+        $this->mutex->expects(static::once())
             ->method('unlock')
             ->willReturn(true)
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        static::assertEquals($expected, $result);
+        static::assertSame($expected, $result);
     }
 
-    public function testGetOrCreateGetFailThenException()
+    public function testGetOrCreateGetFailThenException(): void
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Get exception');
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
+                case 1:
                     throw new NotFoundException('Value not found');
-                case 2 :
+                case 2:
                     throw new \Exception('Get exception');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
+
+        $this->mutex->expects(static::once())
+            ->method('lock')
+            ->willReturn(true);
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenCreate()
+    public function testGetOrCreateGetFailThenCreate(): void
     {
         $expected = 'valid';
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() use ($expected) {
+        $createClosure = function () use ($expected): string {
             return $expected;
         };
 
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with(0) // Default value
             ->willReturn(true)
         ;
-        $this->mutex->expects(static::at(1))
+        $this->mutex->expects(static::once())
             ->method('unlock')
             ->willReturn(true)
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
 
-        static::assertEquals($expected, $result);
+        static::assertSame($expected, $result);
     }
 
-    public function testGetOrCreateGetFailThenCreateWait()
+    public function testGetOrCreateGetFailThenCreateWait(): void
     {
         $expected = 'valid';
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() use ($expected) {
+        $createClosure = function () use ($expected): string {
             return $expected;
         };
 
         $wait = 10;
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with($wait)
             ->willReturn(true)
         ;
-        $this->mutex->expects(static::at(1))
+        $this->mutex->expects(static::once())
             ->method('unlock')
             ->willReturn(true)
         ;
 
         $result = Helper::getOrCreate($this->mutex, $getClosure, $createClosure, $wait);
 
-        static::assertEquals($expected, $result);
+        static::assertSame($expected, $result);
     }
 
-    public function testGetOrCreateGetFailThenLocked()
+    public function testGetOrCreateGetFailThenLocked(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Unable to acquire lock on mutex');
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() {
+        $createClosure = function (): void {
             static::fail('Create Closure was not expected to be called');
         };
 
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with(0) // Default value
             ->willReturn(false)
@@ -218,7 +219,7 @@ class HelperTest extends TestCase
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenCreateUnlockFail()
+    public function testGetOrCreateGetFailThenCreateUnlockFail(): void
     {
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Unable to release lock on mutex');
@@ -226,28 +227,27 @@ class HelperTest extends TestCase
         $expected = 'valid';
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() use ($expected) {
+        $createClosure = function () use ($expected): string {
             return $expected;
         };
 
-        $this->mutex->expects(static::at(0))
+        $this->mutex->expects(static::once())
             ->method('lock')
             ->with(0) // Default value
             ->willReturn(true)
         ;
-        $this->mutex->expects(static::at(1))
+        $this->mutex->expects(static::once())
             ->method('unlock')
             ->willReturn(false)
         ;
@@ -255,52 +255,58 @@ class HelperTest extends TestCase
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenCreateException()
+    public function testGetOrCreateGetFailThenCreateException(): void
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Create exception');
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() {
+        $createClosure = function (): void {
             throw new \Exception('Create exception');
         };
+
+        $this->mutex->expects(static::once())
+            ->method('lock')
+            ->willReturn(true);
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
 
-    public function testGetOrCreateGetFailThenCreateNotFoundException()
+    public function testGetOrCreateGetFailThenCreateNotFoundException(): void
     {
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Create not found exception');
 
         $count = 0;
-        $getClosure = function() use (&$count) {
+        $getClosure = function () use (&$count) {
             switch (++$count) {
-                case 1 :
-                    // no break
-                case 2 :
+                case 1:
+                case 2:
                     throw new NotFoundException('Value not found');
-                default :
+                default:
                     static::fail('Get Closure was not expected to be called more than twice');
                     return null;
                     break;
             }
         };
-        $createClosure = function() {
+        $createClosure = function (): void {
             throw new NotFoundException('Create not found exception');
         };
+
+        $this->mutex->expects(static::once())
+            ->method('lock')
+            ->willReturn(true);
 
         Helper::getOrCreate($this->mutex, $getClosure, $createClosure);
     }
