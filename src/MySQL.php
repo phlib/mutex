@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phlib\Mutex;
 
+use Phlib\Db\Adapter;
+
 /**
  * MySQL Mutex
  *
@@ -11,11 +13,9 @@ namespace Phlib\Mutex;
  */
 class MySQL implements MutexInterface
 {
-    private array $dbConfig;
-
     private string $name;
 
-    private \PDO $connection;
+    private Adapter $dbAdapter;
 
     private \PDOStatement $stmtGetLock;
 
@@ -23,18 +23,9 @@ class MySQL implements MutexInterface
 
     private bool $isLocked = false;
 
-    /**
-     * @param array $dbConfig {
-     *     @var string $host     Required.
-     *     @var int    $port     Optional. Default 3306.
-     *     @var string $username Optional. Default empty.
-     *     @var string $password Optional. Default empty.
-     *     @var int    $timeout  Optional. Connection timeout in seconds. Default 2.
-     * }
-     */
-    public function __construct(string $name, array $dbConfig)
+    public function __construct(string $name, Adapter $dbAdapter)
     {
-        $this->dbConfig = $dbConfig;
+        $this->dbAdapter = $dbAdapter;
         $this->name = $name;
     }
 
@@ -48,8 +39,7 @@ class MySQL implements MutexInterface
         }
 
         if (!isset($this->stmtGetLock)) {
-            $pdo = $this->getConnection();
-            $this->stmtGetLock = $pdo->prepare('SELECT GET_LOCK(?, ?)');
+            $this->stmtGetLock = $this->dbAdapter->prepare('SELECT GET_LOCK(?, ?)');
         }
 
         $this->stmtGetLock->execute([$this->name, $wait]);
@@ -71,8 +61,7 @@ class MySQL implements MutexInterface
     {
         if ($this->isLocked) {
             if (!isset($this->stmtReleaseLock)) {
-                $pdo = $this->getConnection();
-                $this->stmtReleaseLock = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+                $this->stmtReleaseLock = $this->dbAdapter->prepare('SELECT RELEASE_LOCK(?)');
             }
 
             $this->isLocked = false;
@@ -82,53 +71,5 @@ class MySQL implements MutexInterface
         }
 
         return false;
-    }
-
-    /**
-     * Get connection, create if required
-     *
-     * Visibility `protected` so PDO dependency can be mocked in unit tests.
-     * @todo Refactor for proper dependency injection.
-     */
-    protected function getConnection(): \PDO
-    {
-        if (!isset($this->connection)) {
-            if (!isset($this->dbConfig['host'])) {
-                throw new \InvalidArgumentException('Missing host config param');
-            }
-
-            $dsn = "mysql:host={$this->dbConfig['host']}";
-
-            if (isset($this->dbConfig['port'])) {
-                $dsn .= ";port={$this->dbConfig['port']}";
-            }
-
-            $timeout = filter_var(
-                \Phlib\Config\get($this->dbConfig, 'timeout'),
-                FILTER_VALIDATE_INT,
-                [
-                    'options' => [
-                        'default' => 2,
-                        'min_range' => 0,
-                        'max_range' => 120,
-                    ],
-                ]
-            );
-
-            $options = [
-                \PDO::ATTR_TIMEOUT => $timeout,
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-            ];
-
-            $this->connection = new \PDO(
-                $dsn,
-                \Phlib\Config\get($this->dbConfig, 'username', ''),
-                \Phlib\Config\get($this->dbConfig, 'password', ''),
-                $options
-            );
-        }
-
-        return $this->connection;
     }
 }

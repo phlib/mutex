@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phlib\Mutex\Test;
 
+use Phlib\Db\Adapter;
 use Phlib\Mutex\MySQL;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -17,15 +18,12 @@ class MySQLTest extends TestCase
 {
     private const LOCK_NAME = 'dummyLock';
 
-    /**
-     * @var MySQL|MockObject
-     */
-    private MockObject $mutex;
+    private MySQL $mutex;
 
     /**
-     * @var \PDO|MockObject
+     * @var Adapter|MockObject
      */
-    private MockObject $pdo;
+    private MockObject $dbAdapter;
 
     /**
      * @var \PDOStatement|MockObject
@@ -40,23 +38,16 @@ class MySQLTest extends TestCase
     protected function setUp(): void
     {
         // Mock PDO classes
-        $this->pdo = $this->createMock(\PDO::class);
+        $this->dbAdapter = $this->createMock(Adapter::class);
         $this->stmtGetLock = $this->createMock(\PDOStatement::class);
         $this->stmtReleaseLock = $this->createMock(\PDOStatement::class);
 
-        $this->mutex = $this->getMockBuilder(MySQL::class)
-            ->setConstructorArgs([self::LOCK_NAME, []])
-            ->setMethods(['getConnection'])
-            ->getMock();
+        $this->mutex = new MySQL(self::LOCK_NAME, $this->dbAdapter);
     }
 
     public function testLock(): void
     {
-        $this->mutex->expects(static::once())
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::once())
+        $this->dbAdapter->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -78,11 +69,7 @@ class MySQLTest extends TestCase
     {
         $lockTimeout = 30;
 
-        $this->mutex->expects(static::once())
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::once())
+        $this->dbAdapter->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -102,11 +89,7 @@ class MySQLTest extends TestCase
 
     public function testLockFailed(): void
     {
-        $this->mutex->expects(static::once())
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::once())
+        $this->dbAdapter->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -125,11 +108,7 @@ class MySQLTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Failure on mutex');
 
-        $this->mutex->expects(static::once())
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::once())
+        $this->dbAdapter->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -146,11 +125,7 @@ class MySQLTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Failure on mutex');
 
-        $this->mutex->expects(static::once())
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::once())
+        $this->dbAdapter->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -160,11 +135,7 @@ class MySQLTest extends TestCase
 
     public function testLockExisting(): void
     {
-        $this->mutex->expects(static::once())
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::once())
+        $this->dbAdapter->expects(static::once())
             ->method('prepare')
             ->willReturn($this->stmtGetLock);
 
@@ -186,11 +157,7 @@ class MySQLTest extends TestCase
 
     public function testUnlock(): void
     {
-        $this->mutex->expects(static::exactly(2))
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::exactly(2))
+        $this->dbAdapter->expects(static::exactly(2))
             ->method('prepare')
             ->willReturnOnConsecutiveCalls(
                 $this->stmtGetLock,
@@ -220,11 +187,7 @@ class MySQLTest extends TestCase
 
     public function testUnlockFailed(): void
     {
-        $this->mutex->expects(static::exactly(2))
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::exactly(2))
+        $this->dbAdapter->expects(static::exactly(2))
             ->method('prepare')
             ->willReturnOnConsecutiveCalls(
                 $this->stmtGetLock,
@@ -250,11 +213,7 @@ class MySQLTest extends TestCase
 
     public function testUnlockNoLock(): void
     {
-        $this->mutex->expects(static::never())
-            ->method('getConnection')
-            ->willReturn($this->pdo);
-
-        $this->pdo->expects(static::never())
+        $this->dbAdapter->expects(static::never())
             ->method('prepare');
 
         // The stmt should not be executed

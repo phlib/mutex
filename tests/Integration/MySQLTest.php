@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phlib\Mutex\Test\Integration;
 
+use Phlib\Db\Adapter;
 use Phlib\Mutex\MySQL;
 use PHPUnit\Framework\TestCase;
 
@@ -12,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  */
 class MySQLTest extends TestCase
 {
-    private array $dbConfig;
+    private Adapter $dbAdapter;
 
     protected function setUp(): void
     {
@@ -23,19 +24,19 @@ class MySQLTest extends TestCase
 
         parent::setUp();
 
-        $this->dbConfig = [
+        $this->dbAdapter = new Adapter([
             'host' => getenv('INTEGRATION_DB_HOST'),
             'port' => getenv('INTEGRATION_DB_PORT'),
             'username' => getenv('INTEGRATION_DB_USERNAME'),
             'password' => getenv('INTEGRATION_DB_PASSWORD'),
-        ];
+        ]);
     }
 
     public function testLock(): void
     {
         $name = sha1(uniqid());
 
-        $mutex = new MySQL($name, $this->dbConfig);
+        $mutex = new MySQL($name, $this->dbAdapter);
 
         $lockResult = $mutex->lock();
         static::assertTrue($lockResult);
@@ -48,7 +49,7 @@ class MySQLTest extends TestCase
     {
         $name = sha1(uniqid());
 
-        $mutex = new MySQL($name, $this->dbConfig);
+        $mutex = new MySQL($name, $this->dbAdapter);
 
         $lockAResult = $mutex->lock();
         static::assertTrue($lockAResult);
@@ -65,8 +66,11 @@ class MySQLTest extends TestCase
     {
         $name = sha1(uniqid());
 
-        $mutexA = new MySQL($name, $this->dbConfig);
-        $mutexB = new MySQL($name, $this->dbConfig);
+        $mutexA = new MySQL($name, $this->dbAdapter);
+
+        // Clone Adapter to get separate connection
+        $dbAdapterB = clone $this->dbAdapter;
+        $mutexB = new MySQL($name, $dbAdapterB);
 
         $lockAResult = $mutexA->lock();
         static::assertTrue($lockAResult);
@@ -83,8 +87,11 @@ class MySQLTest extends TestCase
     {
         $name = sha1(uniqid());
 
-        $mutexA = new MySQL($name, $this->dbConfig);
-        $mutexB = new MySQL($name, $this->dbConfig);
+        $mutexA = new MySQL($name, $this->dbAdapter);
+
+        // Clone Adapter to get separate connection
+        $dbAdapterB = clone $this->dbAdapter;
+        $mutexB = new MySQL($name, $dbAdapterB);
 
         $lockAResult = $mutexA->lock();
         static::assertTrue($lockAResult);
@@ -110,7 +117,7 @@ class MySQLTest extends TestCase
         // MySQL 5.7 enforces a maximum length on lock names of 64 characters
         $name = str_repeat(sha1(uniqid()), 3);
 
-        $mutex = new MySQL($name, $this->dbConfig);
+        $mutex = new MySQL($name, $this->dbAdapter);
 
         $lockResult = $mutex->lock();
         static::assertTrue($lockResult);
@@ -120,7 +127,7 @@ class MySQLTest extends TestCase
     {
         $name = sha1(uniqid());
 
-        $mutex = new MySQL($name, $this->dbConfig);
+        $mutex = new MySQL($name, $this->dbAdapter);
 
         $unlockResult = $mutex->unlock();
         static::assertFalse($unlockResult);
