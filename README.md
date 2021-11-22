@@ -21,11 +21,12 @@ $ composer require phlib/mutex
 ### MySQL
 
 ```php
-$mutex = new \Phlib\Mutex\MySQL('my-lock', [
-    'host'     => '127.0.0.1',
+$adapter = new \Phlib\Db\Adapter([
+    'host' => '127.0.0.1',
     'username' => 'my-user',
     'password' => 'my-pass'
-]);
+]); 
+$mutex = new \Phlib\Mutex\MySQL('my-lock', $adapter);
 if ($mutex->lock()) {
     // Do some data manipulation while locked
     $mutex->unlock();

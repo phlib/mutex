@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Type declarations have been added to all method parameters and return types
   where possible.
 ### Changed
+- **BC break**: Constructor of `MySQL` requires instance of `\Phlib\Db\Adapter`
+  instead of a raw DB config array. *Phlib/Db* is a new package dependency.
+  Implementations can pass their existing DB config to `Adapter`. See *README*.
 - **BC break**: Reduce visibility of internal methods and properties. These
   members are not part of the public API. No impact to standard use of this
   package. If an implementation has a use case which needs to override these
