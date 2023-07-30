@@ -112,7 +112,9 @@ class MySQLTest extends TestCase
     public function testLockError(): void
     {
         $this->expectException(\PDOException::class);
-        $this->expectExceptionMessage('Incorrect user-level lock name');
+        $mysql57 = 'Incorrect user-level lock name';
+        $mysql8 = "4163 User-level lock name '\w+' should not exceed 64";
+        $this->expectExceptionMessageMatches("({$mysql57}|{$mysql8})");
 
         // MySQL 5.7 enforces a maximum length on lock names of 64 characters
         $name = str_repeat(sha1(uniqid()), 3);
