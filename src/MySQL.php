@@ -67,7 +67,7 @@ class MySQL implements MutexInterface
             $this->isLocked = false;
             $this->stmtReleaseLock->execute([$this->name]);
 
-            return ((int)$this->stmtReleaseLock->fetchColumn() === 1);
+            return (int)$this->stmtReleaseLock->fetchColumn() === 1;
         }
 
         return false;
