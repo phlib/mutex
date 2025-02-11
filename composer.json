@@ -19,7 +19,7 @@
     "require": {
         "php" : "^7.4 || ^8.0",
         "phlib/config" : "^2",
-        "phlib/db" : "^2"
+        "phlib/db": "^2 || ^3"
     },
     "suggest": {
         "ext-pdo": "Required to use MySQL mutex",
