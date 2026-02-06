@@ -18,7 +18,7 @@
     ],
     "require": {
         "php" : "^7.4 || ^8.0",
-        "phlib/config" : "^2",
+        "phlib/config": "^2 || ^3",
         "phlib/db": "^2 || ^3"
     },
     "suggest": {
